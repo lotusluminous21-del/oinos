@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, ChevronRight, Palette } from "lucide-react"
+import { Menu, X, ChevronRight, Palette, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -79,6 +79,17 @@ export function MobileNav() {
                                     Βρες Χρώμα
                                 </span>
                                 <ChevronRight className="h-4 w-4" />
+                            </Link>
+                            <Link
+                                href="/#expert"
+                                onClick={() => setOpen(false)}
+                                className="flex items-center justify-between px-4 py-3 text-sm font-heading font-bold tracking-wide uppercase text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-l-4 border-emerald-500"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <Sparkles className="h-4 w-4" />
+                                    AI Expert
+                                </span>
+                                <ChevronRight className="h-4 w-4 text-emerald-600" />
                             </Link>
                             <Link
                                 href="/odigos"

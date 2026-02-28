@@ -109,14 +109,17 @@ def ingest_products_to_firestore(products: List[Dict[str, Any]], db: firestore.c
     """
     count = 0
     total_processed = 0
-    results = {"created": 0, "updated": 0, "errors": 0}
+    results = {"created": 0, "updated": 0, "errors": 0, "ingested_skus": []}
 
     # For status preservation, we need to know what's already there.
     # We'll process in chunks to avoid hitting Firestore limits and to keep it efficient.
-    chunk_size = 100
+    chunk_size = 30 # Limit for Firestore 'IN' queries
     for i in range(0, len(products), chunk_size):
         chunk = products[i:i + chunk_size]
         skus = [p["sku"] for p in chunk]
+        
+        # Track SKUs for the pipeline governor
+        results["ingested_skus"].extend(skus)
         
         # 1. Fetch existing docs to check statuses
         existing_docs = {doc.id: doc.to_dict() for doc in db.collection(STAGING_COLLECTION).where("sku", "in", skus).get()}

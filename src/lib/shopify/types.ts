@@ -60,6 +60,7 @@ export type Product = {
     title: string;
     description: string;
     descriptionHtml: string;
+    productType?: string;
     featuredImage: Image;
     images: Connection<Image>;
     priceRange: {

@@ -13,7 +13,7 @@ import {
     Settings,
     ActivitySquare,
     PackageSearch,
-    RefreshCcw
+    Terminal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,9 +46,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             icon: LayoutGrid
         },
         {
-            title: "Live Sync",
-            href: "/admin/sync",
-            icon: RefreshCcw
+            title: "Lab (Monolith)",
+            href: "/admin/lab",
+            icon: PackageSearch
+        },
+        {
+            title: "System Logs",
+            href: "/admin/logs",
+            icon: Terminal
         }
     ];
 
@@ -191,7 +196,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 {/* Content Frame */}
                 <div className={cn(
                     "flex-1 overflow-auto",
-                    pathname.includes('/wizard') ? "p-0" : "p-4 md:p-6 lg:p-8"
+                    (pathname.includes('/wizard') || pathname.includes('/lab')) ? "p-0" : "p-4 md:p-6 lg:p-8"
                 )}>
                     {/* We no longer constrain max-width strictly to allow datatables to breathe, 
                         but we provide sensible padding. */}

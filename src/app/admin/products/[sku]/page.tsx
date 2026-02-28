@@ -1,23 +1,16 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { publishProductAction, unpublishProductAction } from "@/app/actions/publish-product";
 import {
     ChevronLeft,
-    Save,
-    Globe,
     Loader2,
     ImageIcon,
-    Wand2,
-    Trash2,
     AlertCircle,
     CheckCircle2,
     Settings,
-    UploadCloud,
-    XCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +43,8 @@ interface StagingProduct {
         technical_specs?: Record<string, any>;
         attributes?: Record<string, any>;
         variants?: Variant[];
-        images?: Array<{ url: string }>;
+        images?: Array<{ url: string; suffix?: string }>;
+        variant_images?: Record<string, Array<{ url: string }>>;
         generated_images?: Record<string, string>;
         selected_images?: Record<string, string>;
     };
@@ -63,20 +57,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
     const router = useRouter();
     const [product, setProduct] = useState<StagingProduct | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isPublishing, setIsPublishing] = useState(false);
-    const [isUnpublishing, setIsUnpublishing] = useState(false);
-
-    // Editable Fields (Using new schema fields title, description)
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [price, setPrice] = useState("");
-    const [priceBulk, setPriceBulk] = useState("");
-    const [category, setCategory] = useState("");
-    const [tags, setTags] = useState<string[]>([]);
-    const [technicalSpecs, setTechnicalSpecs] = useState<Record<string, any>>({});
-    const [variants, setVariants] = useState<Variant[]>([]);
-
     useEffect(() => {
         const fetchProduct = async () => {
             if (!db) return;
@@ -87,14 +67,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                 if (docSnap.exists()) {
                     const data = docSnap.data() as StagingProduct;
                     setProduct(data);
-                    setTitle(data.ai_data?.title || data.pylon_data.name);
-                    setDescription(data.ai_data?.description || data.pylon_data.description || "");
-                    setPrice(String(data.pylon_data.price_retail || 0));
-                    setPriceBulk(String(data.pylon_data.price_bulk || 0));
-                    setCategory(data.ai_data?.category || "");
-                    setTags(data.ai_data?.tags || []);
-                    setTechnicalSpecs(data.ai_data?.technical_specs || {});
-                    setVariants(data.ai_data?.variants || []);
                 }
             } catch (err) {
                 console.error("Error fetching product:", err);
@@ -104,127 +76,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
         };
         fetchProduct();
     }, [sku]);
-
-    const handleSave = async () => {
-        if (!product || !db) return;
-        setIsSaving(true);
-        try {
-            const docRef = doc(db, "staging_products", sku);
-            await updateDoc(docRef, {
-                "ai_data.title": title,
-                "ai_data.description": description,
-                "ai_data.category": category,
-                "ai_data.tags": tags,
-                "ai_data.technical_specs": technicalSpecs,
-                "ai_data.variants": variants,
-                "pylon_data.price_retail": parseFloat(price),
-                "pylon_data.price_bulk": parseFloat(priceBulk),
-                status: (product.status === 'IMPORTED' || product.status === 'PENDING_METADATA') ? 'PENDING_METADATA_REVIEW' : product.status,
-                updated_at: new Date().toISOString()
-            });
-
-            if (product.shopify_product_id) {
-                console.log("Auto-syncing changes to Shopify Production...");
-                const enrichedProduct = {
-                    ...product,
-                    ai_data: {
-                        ...product.ai_data,
-                        title,
-                        description,
-                        category,
-                        tags,
-                        technical_specs: technicalSpecs,
-                        variants
-                    },
-                    pylon_data: {
-                        ...product.pylon_data,
-                        price_retail: parseFloat(price),
-                        price_bulk: parseFloat(priceBulk)
-                    }
-                };
-                const sanitizedProduct = JSON.parse(JSON.stringify(enrichedProduct));
-                await publishProductAction(sku, sanitizedProduct);
-            }
-
-        } catch (e) {
-            console.error(e);
-            alert("Save failed");
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handlePublish = async () => {
-        if (!product) return;
-        setIsPublishing(true);
-        try {
-            const enrichedProduct = {
-                ...product,
-                ai_data: {
-                    ...product.ai_data,
-                    title,
-                    description,
-                    category,
-                    tags,
-                    technical_specs: technicalSpecs,
-                    variants
-                },
-                pylon_data: {
-                    ...product.pylon_data,
-                    price_retail: parseFloat(price),
-                    price_bulk: parseFloat(priceBulk)
-                }
-            };
-
-            const sanitizedProduct = JSON.parse(JSON.stringify(enrichedProduct));
-            const result = await publishProductAction(sku, sanitizedProduct);
-
-            if (result.success) {
-                const docRef = doc(db!, "staging_products", sku);
-                await updateDoc(docRef, {
-                    shopify_product_id: result.shopifyId,
-                    shopify_handle: result.handle,
-                    published_at: new Date().toISOString(),
-                    status: 'APPROVED'
-                });
-                router.push('/admin/products');
-            } else {
-                alert("Publish failed: " + result.error);
-            }
-        } catch (e) {
-            console.error(e);
-            alert("An error occurred during publishing.");
-        } finally {
-            setIsPublishing(false);
-        }
-    };
-
-    const handleUnpublish = async () => {
-        if (!product || !product.shopify_product_id) return;
-        if (!confirm("Withdraw from Shopify?")) return;
-
-        setIsUnpublishing(true);
-        try {
-            const result = await unpublishProductAction(product.shopify_product_id);
-            if (result.success) {
-                const docRef = doc(db!, "staging_products", sku);
-                await updateDoc(docRef, {
-                    shopify_product_id: null,
-                    shopify_handle: null,
-                    status: 'PENDING_METADATA_REVIEW',
-                    updated_at: new Date().toISOString()
-                });
-                setProduct(prev => prev ? { ...prev, shopify_product_id: undefined, shopify_handle: undefined, status: 'PENDING_METADATA_REVIEW' } : null);
-            } else {
-                alert("Withdraw failed: " + result.error);
-            }
-        } catch (e) {
-            console.error(e);
-            alert("An error occurred during unpublishing.");
-        } finally {
-            setIsUnpublishing(false);
-        }
-    };
 
     if (loading) {
         return (
@@ -244,7 +95,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
         );
     }
 
-    const mainImage = product.ai_data?.generated_images?.base || product.ai_data?.selected_images?.base || product.ai_data?.images?.[0]?.url;
+    const baseStudioImg = product.ai_data?.images?.find((img) => img.suffix === 'base' || img.suffix?.toLowerCase() === 'base' || !img.suffix)?.url;
+    const mainImage = product.ai_data?.generated_images?.base || product.ai_data?.selected_images?.base || baseStudioImg || product.ai_data?.images?.[0]?.url || product.ai_data?.variant_images?.base?.[0]?.url;
     const isPublished = !!product.shopify_product_id;
 
     return (
@@ -264,48 +116,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
 
                 <div className="flex items-center gap-2">
                     <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="sm"
-                        onClick={() => router.push(`/admin/products/wizard?skus=${sku}`)}
-                        className="text-xs font-medium h-8"
+                        className="h-8 bg-zinc-800 text-zinc-100 hover:bg-zinc-700 hover:text-white text-xs border border-zinc-700 gap-2"
+                        onClick={() => router.push(`/admin/lab?skus=${sku}`)}
                     >
-                        <Wand2 className="w-3.5 h-3.5 mr-2 text-zinc-400" /> Wizard
+                        <Settings className="w-3.5 h-3.5" /> Manage
                     </Button>
-
-                    <div className="h-4 w-px bg-zinc-300 mx-1" />
-
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs font-medium h-8 min-w-[100px]"
-                        onClick={handleSave}
-                        disabled={isSaving || isPublishing || isUnpublishing}
-                    >
-                        {isSaving ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-2" />}
-                        Save Edits
-                    </Button>
-
-                    <Button
-                        size="sm"
-                        className="bg-zinc-900 text-zinc-50 hover:bg-zinc-800 text-xs font-medium h-8 min-w-[120px]"
-                        onClick={handlePublish}
-                        disabled={isSaving || isPublishing || isUnpublishing}
-                    >
-                        {isPublishing ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5 mr-2" />}
-                        {isPublished ? "Sync Updates" : "Deploy Live"}
-                    </Button>
-
-                    {isPublished && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 ml-1"
-                            onClick={handleUnpublish}
-                            disabled={isSaving || isPublishing || isUnpublishing}
-                        >
-                            {isUnpublishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                        </Button>
-                    )}
                 </div>
             </div>
 
@@ -318,7 +135,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                         {/* Main Image Hero */}
                         <div className="aspect-[4/5] rounded-lg border border-zinc-200 bg-white shadow-sm flex items-center justify-center relative overflow-hidden group">
                             {mainImage ? (
-                                <img src={mainImage} alt={title} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 mix-blend-multiply" />
+                                <img src={mainImage} alt={product.ai_data?.title || product.pylon_data.name} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 mix-blend-multiply" />
                             ) : (
                                 <div className="flex flex-col items-center gap-2 text-zinc-400">
                                     <ImageIcon className="w-8 h-8" />
@@ -328,15 +145,27 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                         </div>
 
                         {/* Thumbnails */}
-                        {product.ai_data?.images && product.ai_data.images.length > 0 && (
-                            <div className="grid grid-cols-4 gap-2">
-                                {product.ai_data.images.slice(0, 4).map((img, i) => (
-                                    <div key={i} className="aspect-square rounded-md border border-zinc-200 bg-white overflow-hidden cursor-pointer hover:border-zinc-400 transition-colors p-1">
-                                        <img src={img.url} className="w-full h-full object-cover rounded-sm mix-blend-multiply" />
+                        {(() => {
+                            const images = [];
+                            if (mainImage) images.push({ url: mainImage });
+                            if (product.ai_data?.images) {
+                                product.ai_data.images.forEach(img => {
+                                    if (img.url !== mainImage) images.push(img);
+                                });
+                            }
+                            if (images.length > 0) {
+                                return (
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {images.map((img, i) => (
+                                            <div key={i} className="aspect-square rounded-md border border-zinc-200 bg-white overflow-hidden cursor-pointer hover:border-zinc-400 transition-colors p-1">
+                                                <img src={img.url} className="w-full h-full object-cover rounded-sm mix-blend-multiply" />
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                );
+                            }
+                            return null;
+                        })()}
 
                         {/* Status Block */}
                         <div className="rounded-lg border border-zinc-200 bg-white p-4 space-y-3">
@@ -344,7 +173,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                             <div className="space-y-2 text-xs">
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500">Metadata Enriched</span>
-                                    {title ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <span className="w-1.5 h-1.5 rounded-full bg-zinc-300" />}
+                                    {product.ai_data?.title ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <span className="w-1.5 h-1.5 rounded-full bg-zinc-300" />}
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-zinc-500">Visuals Sourced</span>
@@ -367,42 +196,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                         <section className="space-y-6">
                             <div className="space-y-4">
                                 <label className="text-xs font-semibold text-zinc-900">Greek Title</label>
-                                <Input
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    className="text-lg font-medium border-x-0 border-t-0 border-b-2 border-zinc-200 rounded-none px-0 h-auto pb-2 focus-visible:ring-0 focus-visible:border-zinc-900 bg-transparent"
-                                    placeholder="Semantic title..."
-                                />
+                                <div className="text-lg font-medium border-b-2 border-zinc-200 pb-2 bg-transparent">
+                                    {product.ai_data?.title || product.pylon_data.name}
+                                </div>
                                 <div className="text-[10px] text-zinc-400 font-mono">Original: {product.pylon_data.name}</div>
                             </div>
 
                             <div className="grid grid-cols-3 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-semibold text-zinc-900">Category</label>
-                                    <Input
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
-                                        className="text-sm bg-zinc-50 border-zinc-200 h-9"
-                                        placeholder="Category..."
-                                    />
+                                    <div className="text-sm bg-zinc-50 border border-zinc-200 h-9 px-3 py-2 rounded-md">
+                                        {product.ai_data?.category || "Uncategorized"}
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-semibold text-zinc-900">Retail Price (€)</label>
-                                    <Input
-                                        value={price}
-                                        onChange={(e) => setPrice(e.target.value)}
-                                        type="number"
-                                        className="text-sm bg-zinc-50 border-zinc-200 h-9"
-                                    />
+                                    <div className="text-sm bg-zinc-50 border border-zinc-200 h-9 px-3 py-2 rounded-md">
+                                        {(product.pylon_data.price_retail || 0).toFixed(2)}
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-semibold text-zinc-900">Wholesale Price (€)</label>
-                                    <Input
-                                        value={priceBulk}
-                                        onChange={(e) => setPriceBulk(e.target.value)}
-                                        type="number"
-                                        className="text-sm bg-zinc-50 border-zinc-200 h-9"
-                                    />
+                                    <div className="text-sm bg-zinc-50 border border-zinc-200 h-9 px-3 py-2 rounded-md">
+                                        {(product.pylon_data.price_bulk || 0).toFixed(2)}
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -415,12 +232,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                                 Greek Semantic Description
                                 <Badge variant="outline" className="text-[9px] font-normal text-zinc-500 py-0 border-zinc-200">AI Authored</Badge>
                             </label>
-                            <Textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="min-h-[200px] text-sm bg-zinc-50/50 border-zinc-200 rounded-md p-4 leading-relaxed focus-visible:ring-1 focus-visible:ring-zinc-400"
-                                placeholder="Awaiting enrichment..."
-                            />
+                            <div className="min-h-[200px] text-sm bg-zinc-50/50 border border-zinc-200 rounded-md p-4 leading-relaxed whitespace-pre-wrap">
+                                {product.ai_data?.description || product.pylon_data.description || <span className="text-zinc-400 italic">Awaiting enrichment...</span>}
+                            </div>
                         </section>
 
                         {/* Technical Specs & Variants Side-by-Side */}
@@ -430,20 +244,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                             <section className="space-y-4">
                                 <label className="text-xs font-semibold text-zinc-900">Technical Specifications</label>
                                 <div className="rounded-lg border border-zinc-200 overflow-hidden text-sm">
-                                    {Object.entries(technicalSpecs).length > 0 ? (
+                                    {Object.entries(product.ai_data?.technical_specs || {}).length > 0 ? (
                                         <table className="w-full text-left">
                                             <tbody className="divide-y divide-zinc-100">
-                                                {Object.entries(technicalSpecs).map(([key, value]) => (
+                                                {Object.entries(product.ai_data?.technical_specs || {}).map(([key, value]) => (
                                                     <tr key={key} className="bg-white hover:bg-zinc-50/50">
                                                         <td className="p-2.5 font-medium text-zinc-600 border-r border-zinc-100 w-1/3 bg-zinc-50/50">
                                                             {key}
                                                         </td>
-                                                        <td className="p-0">
-                                                            <Input
-                                                                className="h-full w-full border-none bg-transparent rounded-none px-3 focus-visible:ring-1 focus-visible:ring-inset text-zinc-900"
-                                                                value={Array.isArray(value) ? value.join(", ") : String(value)}
-                                                                onChange={(e) => setTechnicalSpecs(prev => ({ ...prev, [key]: e.target.value }))}
-                                                            />
+                                                        <td className="p-2.5 text-zinc-900">
+                                                            {Array.isArray(value) ? value.join(", ") : String(value)}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -462,7 +272,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                                     <Badge variant="outline" className="text-[9px] font-normal text-indigo-600 bg-indigo-50 border-indigo-200 py-0">Mapped to Shopify</Badge>
                                 </label>
                                 <div className="rounded-lg border border-zinc-200 overflow-hidden text-sm">
-                                    {variants.length > 0 ? (
+                                    {(product.ai_data?.variants || []).length > 0 ? (
                                         <table className="w-full text-left">
                                             <thead className="bg-zinc-50 border-b border-zinc-200 text-[10px] uppercase text-zinc-500">
                                                 <tr>
@@ -472,7 +282,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-zinc-100 bg-white">
-                                                {variants.map((v, i) => (
+                                                {(product.ai_data?.variants || []).map((v, i) => (
                                                     <tr key={i}>
                                                         <td className="p-2 font-mono text-xs text-zinc-500">{v.sku_suffix}</td>
                                                         <td className="p-2 font-medium text-zinc-900">{v.option_name}</td>
@@ -492,25 +302,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                         <section className="space-y-4 pb-12">
                             <label className="text-xs font-semibold text-zinc-900">Tags</label>
                             <div className="flex flex-wrap gap-2">
-                                {tags.map((tag, i) => (
-                                    <Badge key={i} variant="secondary" className="bg-zinc-100 text-zinc-700 hover:bg-zinc-200 font-normal pr-1 gap-1">
+                                {(product.ai_data?.tags || []).map((tag, i) => (
+                                    <Badge key={i} variant="secondary" className="bg-zinc-100 text-zinc-700 font-normal px-2">
                                         {tag}
-                                        <button onClick={() => setTags(tags.filter((_, idx) => idx !== i))} className="text-zinc-400 hover:text-red-500 rounded-full p-0.5">
-                                            <XCircle className="w-3 h-3" />
-                                        </button>
                                     </Badge>
                                 ))}
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        const newTag = prompt("Enter new tag:");
-                                        if (newTag) setTags([...tags, newTag]);
-                                    }}
-                                    className="h-6 px-3 text-[10px] border-dashed text-zinc-500"
-                                >
-                                    + Add Tag
-                                </Button>
+                                {(!product.ai_data?.tags || product.ai_data.tags.length === 0) && (
+                                    <div className="text-xs text-zinc-500 italic">No tags</div>
+                                )}
                             </div>
                         </section>
                     </div>

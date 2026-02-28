@@ -1,0 +1,544 @@
+[
+  {
+    "title": "HB Body - Μονωτικό Αστάρι Σπρέι Χακί P962 400ml",
+    "id": "gid://shopify/Product/9329214947496",
+    "handle": "hb-body-μονωτικό-αστάρι-σπρέι-χακί-p962-400ml",
+    "productType": "Αστάρια & Υποστρώματα",
+    "tags": [
+      "400ml",
+      "Bodywork",
+      "HB Body",
+      "HB-P962",
+      "Isolator Primer",
+      "Khaki",
+      "P962",
+      "Αεροζόλ",
+      "Αντι-φούσκωμα",
+      "Απομόνωση Διαλυτών",
+      "Αστάρι 1K",
+      "Αστάρι Αυτοκινήτου",
+      "Αστάρι για Παλιές Βαφές",
+      "Αστάρια & Υποστρώματα",
+      "Αυτοκινητοβιομηχανία",
+      "Βαφή Αυτοκινήτου",
+      "Επισκευή Βαφής",
+      "Μονωτικό Αστάρι",
+      "Σπρέι Αστάρι",
+      "Ταχυστέγνωτο Αστάρι",
+      "Χωρίς Τρίψιμο"
+    ],
+    "metafields": {
+      "short_description": {
+        "value": "Ταχυστέγνωτο μονωτικό αστάρι 1Κ σε σπρέι, ιδανικό για την προστασία ευαίσθητων παλιών βαφών από διαλύτες. Δεν απαιτεί τρίψιμο.",
+        "type": "multi_line_text_field"
+      },
+      "brand": {
+        "value": "HB Body",
+        "type": "single_line_text_field"
+      },
+      "category": {
+        "value": "Αστάρια & Υποστρώματα",
+        "type": "single_line_text_field"
+      },
+      "ai_confidence": {
+        "value": "0.9",
+        "type": "number_decimal"
+      },
+      "chemical_base": {
+        "value": "Εποξικό",
+        "type": "single_line_text_field"
+      },
+      "finish": {
+        "value": "Ματ",
+        "type": "single_line_text_field"
+      },
+      "sequence_step": {
+        "value": "Αστάρι",
+        "type": "single_line_text_field"
+      },
+      "coverage": {
+        "value": "20-25 microns dry film thickness with two coats",
+        "type": "single_line_text_field"
+      },
+      "drying_time_touch": {
+        "value": "10-15 λεπτά",
+        "type": "single_line_text_field"
+      },
+      "recoat_window": {
+        "value": "1 ώρα",
+        "type": "single_line_text_field"
+      },
+      "full_cure": {
+        "value": "1 ώρα",
+        "type": "single_line_text_field"
+      },
+      "drying_time": {
+        "value": "10-15 λεπτά (στην αφή)",
+        "type": "single_line_text_field"
+      },
+      "environment": {
+        "value": "Και τα δύο",
+        "type": "single_line_text_field"
+      },
+      "dry_film_thickness": {
+        "value": "20-25 μm",
+        "type": "single_line_text_field"
+      },
+      "voc_level": {
+        "value": "VOC compliant",
+        "type": "single_line_text_field"
+      },
+      "surfaces": {
+        "value": "[\"Γυμνό Μέταλλο\",\"Πλαστικό\",\"Ξύλο\",\"Fiberglass\",\"Υπάρχον Χρώμα\",\"Αλουμίνιο\",\"Γαλβανιζέ\"]",
+        "type": "list.single_line_text_field"
+      },
+      "special_properties": {
+        "value": "[\"1 Συστατικού\"]",
+        "type": "list.single_line_text_field"
+      },
+      "application_method": {
+        "value": "[\"Σπρέι\"]",
+        "type": "list.single_line_text_field"
+      }
+    },
+    "variants": [
+      {
+        "sku": "HB103101-KHAKI-400ML",
+        "price": "6.00",
+        "title": "Χακί / 400ml"
+      }
+    ]
+  },
+  {
+    "title": "HB Body - Απολιπαντικό Σπρέι 770 Antisil Normal 400ml",
+    "id": "gid://shopify/Product/9329214816424",
+    "handle": "hb-body-απολιπαντικό-σπρέι-770-antisil-normal-400ml",
+    "productType": "Προετοιμασία & Καθαρισμός",
+    "tags": [
+      "400ml",
+      "770 Antisil",
+      "Degreaser",
+      "HB Body",
+      "Panel Wipe",
+      "VOC Compliant",
+      "Αντισιλικόνη",
+      "Απολιπαντικό",
+      "Αυτοκίνητο",
+      "Αυτοκινητοβιομηχανία",
+      "Αφαίρεση Ελαίων",
+      "Αφαίρεση Λιπών",
+      "Αφαίρεση Σιλικόνης",
+      "Βαφή Αυτοκινήτου",
+      "Επαγγελματικό",
+      "Καθαριστικό Επιφανειών",
+      "Πριν τη Βαφή",
+      "Προετοιμασία & Καθαρισμός",
+      "Προετοιμασία Βαφής",
+      "Σπρέι Καθαρισμού",
+      "Συνεργείο"
+    ],
+    "metafields": {
+      "short_description": {
+        "value": "Εξειδικευμένο απολιπαντικό σπρέι για την άριστη προετοιμασία επιφανειών πριν τη βαφή. Απομακρύνει λίπη, έλαια, σιλικόνη και άλλους ρύπους.",
+        "type": "multi_line_text_field"
+      },
+      "brand": {
+        "value": "HB Body",
+        "type": "single_line_text_field"
+      },
+      "category": {
+        "value": "Προετοιμασία & Καθαρισμός",
+        "type": "single_line_text_field"
+      },
+      "ai_confidence": {
+        "value": "0.9",
+        "type": "number_decimal"
+      },
+      "chemical_base": {
+        "value": "Άλλο",
+        "type": "single_line_text_field"
+      },
+      "finish": {
+        "value": "Άλλο",
+        "type": "single_line_text_field"
+      },
+      "sequence_step": {
+        "value": "Προετοιμασία/Καθαριστικό",
+        "type": "single_line_text_field"
+      },
+      "environment": {
+        "value": "Και τα δύο",
+        "type": "single_line_text_field"
+      },
+      "weight_per_volume": {
+        "value": "0.40 g/cm³",
+        "type": "single_line_text_field"
+      },
+      "voc_level": {
+        "value": "450 g/L",
+        "type": "single_line_text_field"
+      },
+      "surfaces": {
+        "value": "[\"Γυμνό Μέταλλο\",\"Πλαστικό\",\"Υπάρχον Χρώμα\",\"Άλλο\"]",
+        "type": "list.single_line_text_field"
+      },
+      "application_method": {
+        "value": "[\"Σπρέι\"]",
+        "type": "list.single_line_text_field"
+      }
+    },
+    "variants": [
+      {
+        "sku": "HB102001-400ML",
+        "price": "4.50",
+        "title": "400ml"
+      }
+    ]
+  },
+  {
+    "title": "HB Body - Σπρέι Διαλυτικό Σβησίματος 777",
+    "id": "gid://shopify/Product/9329214423208",
+    "handle": "hb-body-σπρέι-διαλυτικό-σβησίματος-777",
+    "productType": "Διαλυτικά & Αραιωτικά",
+    "tags": [
+      "400ml",
+      "777 Blend-In",
+      "Blending Thinner",
+      "DIY Βαφή",
+      "Fade Out Spray",
+      "HB Body",
+      "HB Body 777",
+      "Αεροζόλ Βαφής",
+      "Αυτοκίνητο",
+      "Αυτοκινητοβιομηχανία",
+      "Αόρατο Σβήσιμο",
+      "Διαλυτικά & Αραιωτικά",
+      "Διαλυτικό Σβησίματος",
+      "Διαφανές",
+      "Επαγγελματική Χρήση",
+      "Επισκευή Βαφής Αυτοκινήτου",
+      "Ομαλή Μετάβαση",
+      "Σπρέι Διαλυτικό",
+      "Σπρέι Σβησίματος",
+      "Τοπική Επισκευή",
+      "Φανοποιία"
+    ],
+    "metafields": {
+      "short_description": {
+        "value": "Ειδικό διαλυτικό σε σπρέι για άψογες μεταβάσεις σε τοπικές επισκευές βαφών αυτοκινήτου.",
+        "type": "multi_line_text_field"
+      },
+      "brand": {
+        "value": "HB Body",
+        "type": "single_line_text_field"
+      },
+      "category": {
+        "value": "Διαλυτικά & Αραιωτικά",
+        "type": "single_line_text_field"
+      },
+      "ai_confidence": {
+        "value": "0.9",
+        "type": "number_decimal"
+      },
+      "chemical_base": {
+        "value": "Άλλο",
+        "type": "single_line_text_field"
+      },
+      "finish": {
+        "value": "Άλλο",
+        "type": "single_line_text_field"
+      },
+      "sequence_step": {
+        "value": "Βερνίκι",
+        "type": "single_line_text_field"
+      },
+      "drying_time_touch": {
+        "value": "15-30 λεπτά",
+        "type": "single_line_text_field"
+      },
+      "recoat_window": {
+        "value": "10–15 δευτερόλεπτα",
+        "type": "single_line_text_field"
+      },
+      "drying_time": {
+        "value": "15-30 λεπτά",
+        "type": "single_line_text_field"
+      },
+      "environment": {
+        "value": "Και τα δύο",
+        "type": "single_line_text_field"
+      },
+      "weight_per_volume": {
+        "value": "0.57 g/cm³ (για το αεροζόλ)",
+        "type": "single_line_text_field"
+      },
+      "voc_level": {
+        "value": "570g/L",
+        "type": "single_line_text_field"
+      },
+      "surfaces": {
+        "value": "[\"Υπάρχον Χρώμα\"]",
+        "type": "list.single_line_text_field"
+      },
+      "special_properties": {
+        "value": "[\"1 Συστατικού\"]",
+        "type": "list.single_line_text_field"
+      },
+      "application_method": {
+        "value": "[\"Σπρέι\"]",
+        "type": "list.single_line_text_field"
+      }
+    },
+    "variants": [
+      {
+        "sku": "HB101901-400ML",
+        "price": "3.20",
+        "title": "400ml"
+      }
+    ]
+  },
+  {
+    "title": "HB Body - Αστάρι Σπρέι P303 Spot Repair 1K 400ml",
+    "id": "gid://shopify/Product/9329214324904",
+    "handle": "hb-body-αστάρι-σπρέι-p303-spot-repair-1k-400ml",
+    "productType": "Αστάρια & Υποστρώματα",
+    "tags": [
+      "1K Primer",
+      "400ml",
+      "HB Body",
+      "P303",
+      "Spot Repair",
+      "Αεροζόλ",
+      "Ακρυλικό Αστάρι",
+      "Αστάρι 3D Εκτυπώσεων",
+      "Αστάρι Αυτοκινήτου",
+      "Αστάρι Μετάλλου",
+      "Αστάρι Ξύλου",
+      "Αστάρι Πλαστικών",
+      "Αστάρι Σπρέι",
+      "Αστάρια & Υποστρώματα",
+      "Γρήγορο Στέγνωμα",
+      "Επισκευή Ατελειών",
+      "Εύκολο Τρίψιμο",
+      "Προετοιμασία Βαφής",
+      "Ταχυστέγνωτο Αστάρι",
+      "Υψηλό Γέμισμα"
+    ],
+    "metafields": {
+      "short_description": {
+        "value": "Ταχυστέγνωτο ακρυλικό αστάρι 1K σε μορφή σπρέι για τοπικές επισκευές. Ιδανικό για μέταλλο, πλαστικό και παλαιά χρώματα.",
+        "type": "multi_line_text_field"
+      },
+      "brand": {
+        "value": "HB Body",
+        "type": "single_line_text_field"
+      },
+      "category": {
+        "value": "Αστάρια & Υποστρώματα",
+        "type": "single_line_text_field"
+      },
+      "ai_confidence": {
+        "value": "0.9",
+        "type": "number_decimal"
+      },
+      "chemical_base": {
+        "value": "Ακρυλικό",
+        "type": "single_line_text_field"
+      },
+      "finish": {
+        "value": "Άλλο",
+        "type": "single_line_text_field"
+      },
+      "sequence_step": {
+        "value": "Αστάρι",
+        "type": "single_line_text_field"
+      },
+      "drying_time_touch": {
+        "value": "10-15 λεπτά",
+        "type": "single_line_text_field"
+      },
+      "recoat_window": {
+        "value": "20-30 λεπτά",
+        "type": "single_line_text_field"
+      },
+      "full_cure": {
+        "value": "30-45 λεπτά",
+        "type": "single_line_text_field"
+      },
+      "environment": {
+        "value": "Και τα δύο",
+        "type": "single_line_text_field"
+      },
+      "weight_per_volume": {
+        "value": "0.90 ± 0.05 g/cm³",
+        "type": "single_line_text_field"
+      },
+      "dry_film_thickness": {
+        "value": "20-30 μm",
+        "type": "single_line_text_field"
+      },
+      "voc_level": {
+        "value": "840 g/L",
+        "type": "single_line_text_field"
+      },
+      "surfaces": {
+        "value": "[\"Γυμνό Μέταλλο\",\"Πλαστικό\",\"Υπάρχον Χρώμα\",\"Ξύλο\",\"Άλλο\"]",
+        "type": "list.single_line_text_field"
+      },
+      "special_properties": {
+        "value": "[\"1 Συστατικού\"]",
+        "type": "list.single_line_text_field"
+      },
+      "application_method": {
+        "value": "[\"Σπρέι\"]",
+        "type": "list.single_line_text_field"
+      }
+    },
+    "variants": [
+      {
+        "sku": "HB101801-WHITE-400ML",
+        "price": "6.40",
+        "title": "Λευκό / 400ml"
+      },
+      {
+        "sku": "HB101801-BLACK-400ML",
+        "price": "6.40",
+        "title": "Μαύρο / 400ml"
+      },
+      {
+        "sku": "HB101801-GREY-400ML",
+        "price": "6.40",
+        "title": "Γκρι / 400ml"
+      }
+    ]
+  },
+  {
+    "title": "HB Body - Σπρέι Προστασίας Σασί 4in1 400ml",
+    "id": "gid://shopify/Product/9329214193832",
+    "handle": "hb-body-σπρέι-προστασίας-σασί-4in1-400ml",
+    "productType": "Αστάρια & Υποστρώματα",
+    "tags": [
+      "4in1 SPRAY",
+      "CHASSIS COAT",
+      "DTM",
+      "HB BODY",
+      "Αλκυδική Βαφή",
+      "Αντιδιαβρωτικό",
+      "Αντισκωριακό Σπρέι",
+      "Αντοχή UV",
+      "Αντοχή Καιρό",
+      "Αντοχή Καύσιμα",
+      "Αντοχή Λάδια",
+      "Αστάρια & Υποστρώματα",
+      "Αυτοκίνητο",
+      "Βαφή 1K",
+      "Βαφή Σασί",
+      "Γρήγορο Στέγνωμα",
+      "Μεταλλικές Κατασκευές",
+      "Προστασία Μετάλλων",
+      "Σπρέι 400ml",
+      "Σπρέι Αυτοκινήτου"
+    ],
+    "metafields": {
+      "short_description": {
+        "value": "Σπρέι προστασίας σασί 4in1 της HB Body, με αλκυδική βάση και φωσφορικό ψευδάργυρο για άριστη αντιδιαβρωτική προστασία.",
+        "type": "multi_line_text_field"
+      },
+      "brand": {
+        "value": "HB Body",
+        "type": "single_line_text_field"
+      },
+      "category": {
+        "value": "Αστάρια & Υποστρώματα",
+        "type": "single_line_text_field"
+      },
+      "ai_confidence": {
+        "value": "0.7",
+        "type": "number_decimal"
+      },
+      "chemical_base": {
+        "value": "Σμάλτο",
+        "type": "single_line_text_field"
+      },
+      "finish": {
+        "value": "Σατινέ",
+        "type": "single_line_text_field"
+      },
+      "sequence_step": {
+        "value": "Αστάρι",
+        "type": "single_line_text_field"
+      },
+      "coverage": {
+        "value": "1-2 m²",
+        "type": "single_line_text_field"
+      },
+      "drying_time_touch": {
+        "value": "30-45 λεπτά",
+        "type": "single_line_text_field"
+      },
+      "full_cure": {
+        "value": "5-6 ώρες",
+        "type": "single_line_text_field"
+      },
+      "drying_time": {
+        "value": "5-6 ώρες",
+        "type": "single_line_text_field"
+      },
+      "environment": {
+        "value": "Και τα δύο",
+        "type": "single_line_text_field"
+      },
+      "weight_per_volume": {
+        "value": "1.16 kg/l",
+        "type": "single_line_text_field"
+      },
+      "dry_film_thickness": {
+        "value": "80-90 µm",
+        "type": "single_line_text_field"
+      },
+      "voc_level": {
+        "value": "540 g/l",
+        "type": "single_line_text_field"
+      },
+      "surfaces": {
+        "value": "[\"Γυμνό Μέταλλο\",\"Αλουμίνιο\",\"Γαλβανιζέ\",\"Σκουριά\",\"Ξύλο\"]",
+        "type": "list.single_line_text_field"
+      },
+      "special_properties": {
+        "value": "[\"Αντισκωριακό\",\"1 Συστατικού\"]",
+        "type": "list.single_line_text_field"
+      },
+      "application_method": {
+        "value": "[\"Σπρέι\"]",
+        "type": "list.single_line_text_field"
+      }
+    },
+    "variants": [
+      {
+        "sku": "HB101701-RAL1018-400ML",
+        "price": "3.14",
+        "title": "Κίτρινο / 400ml"
+      },
+      {
+        "sku": "HB101701-RAL3000-400ML",
+        "price": "3.14",
+        "title": "Κόκκινο / 400ml"
+      },
+      {
+        "sku": "HB101701-RAL3009-400ML",
+        "price": "3.14",
+        "title": "Κόκκινο/Καστανοκόκκινο / 400ml"
+      },
+      {
+        "sku": "HB101701-RAL5013-400ML",
+        "price": "3.14",
+        "title": "Μπλε / 400ml"
+      },
+      {
+        "sku": "HB101701-RAL6005-400ML",
+        "price": "3.14",
+        "title": "Πράσινο / 400ml"
+      }
+    ]
+  }
+]

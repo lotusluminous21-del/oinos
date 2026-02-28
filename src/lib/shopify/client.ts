@@ -5,7 +5,8 @@ import {
     getProductsQuery,
     getProductByHandleQuery,
     getCollectionQuery,
-    getCollectionsQuery
+    getCollectionsQuery,
+    getProductTypesQuery
 } from './queries';
 import {
     Product,
@@ -71,4 +72,15 @@ export async function getCollection(handle: string): Promise<Collection | undefi
 export async function getCollections(): Promise<Collection[]> {
     const res = await shopifyFetch<{ collections: Connection<Collection> }>(getCollectionsQuery);
     return res.collections.edges.map((edge) => edge.node);
+}
+
+export async function getProductTypes(): Promise<string[]> {
+    const res = await shopifyFetch<{ products: Connection<{ productType: string }> }>(getProductTypesQuery);
+
+    // Extract productType strings, ensuring uniqueness and removing empty ones
+    const types = res.products.edges
+        .map(edge => edge.node.productType)
+        .filter(type => type && type.trim() !== '');
+
+    return Array.from(new Set(types));
 }

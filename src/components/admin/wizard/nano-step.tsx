@@ -60,7 +60,7 @@ interface NanoStepProps {
     onComplete: () => void;
 }
 
-type Environment = "clean" | "realistic" | "modern";
+type Environment = "clean" | "realistic" | "styled";
 
 export function NanoStep({ products, onBack, onRetry, onRemoveBg, onStartStudio, onRegenerate, onRegenerateAll, onAbort, onComplete }: NanoStepProps) {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -74,9 +74,9 @@ export function NanoStep({ products, onBack, onRetry, onRemoveBg, onStartStudio,
     const [environment, setEnvironment] = useState<Environment>(() => {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('nano_banana_env');
-            if (saved === 'clean' || saved === 'realistic' || saved === 'modern') return saved;
+            if (saved === 'clean' || saved === 'realistic' || saved === 'styled') return saved as Environment;
         }
-        return 'clean';
+        return 'styled';
     });
 
     const [generationModel, setGenerationModel] = useState<"gemini" | "imagen">(() => {
@@ -223,16 +223,16 @@ export function NanoStep({ products, onBack, onRetry, onRemoveBg, onStartStudio,
                             Real
                         </button>
                         <button
-                            onClick={() => setEnvironment("modern")}
+                            onClick={() => setEnvironment("styled")}
                             className={cn(
                                 "py-2 rounded-md text-[9px] font-bold transition-all flex flex-col items-center gap-1",
-                                environment === "modern"
+                                environment === "styled"
                                     ? "bg-white text-zinc-700 shadow-sm"
                                     : "text-zinc-400 hover:text-zinc-600 hover:bg-white/50"
                             )}
                         >
-                            <div className={cn("w-1 h-1 rounded-none", environment === "modern" ? "bg-teal-500" : "bg-zinc-300")} />
-                            Modern
+                            <div className={cn("w-1 h-1 rounded-none", environment === "styled" ? "bg-teal-500" : "bg-zinc-300")} />
+                            Styled
                         </button>
                     </div>
                 </div>

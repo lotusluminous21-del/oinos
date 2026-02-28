@@ -66,7 +66,7 @@ def generate_with_retry(client, model, contents, config, retries=3, initial_dela
                     sleep_time = delay + random.uniform(0, 1) # Add jitter
                     logger.warning(f"Rate limited (429). Retrying in {sleep_time:.2f}s... (Attempt {attempt+1}/{retries})")
                     time.sleep(sleep_time)
-                    delay *= 2 # Exponential backoff
+                    delay = min(delay * 2, 60.0) # Exponential backoff with cap
                     continue
             # Re-raise other errors or if retries exhausted
             raise e
@@ -211,7 +211,7 @@ def enrich_product(event: firestore_fn.Event[firestore_fn.Change[firestore_fn.Do
         # Try to report to doc if possible
         try:
             event.data.after.reference.update({
-            "status": "ENRICHMENT_FAILED",
+            "status": "FAILED",
             "enrichment_message": f"Global Trigger Error: {str(e)[:50]}"
         })
         except:
@@ -354,7 +354,7 @@ def handle_metadata_phase(product_ref, data, db, force_metadata=False):
     except Exception as e:
         logger.error(f"Enrichment Failed for {sku}: {e}", exc_info=True)
         product_ref.update({
-            "status": "ENRICHMENT_FAILED", 
+            "status": "FAILED", 
             "enrichment_message": f"AI Error: {str(e)}"
         })
 
@@ -499,6 +499,8 @@ def handle_nano_banana_phase(doc_ref, sku, name, ai_data):
             try:
                 # Download image to bypass robots.txt restriction on Vertex AI
                 logger.info(f"Downloading source image for {sku} from {source_url}...")
+                import html
+                source_url = html.unescape(source_url)
                 img_resp = requests.get(source_url, timeout=15, verify=False)
                 img_resp.raise_for_status()
                 image_data = img_resp.content
@@ -520,10 +522,7 @@ def handle_nano_banana_phase(doc_ref, sku, name, ai_data):
                     # For Imagen Recontext, we use predict call as it's a specific API
                     # Using the raw prediction endpoint if genai doesn't support it directly
                     try:
-                        # europe-west1 has EXTREMELY low Imagen quotas (often 1 QPM).
-                        # We force a polite 60s delay to avoid triggering the backoff logic.
-                        logger.info(f"Sleeping 60s before Imagen request for {sku} to respect quotas...")
-                        time.sleep(60)
+                        # Removed forced 60s sleep since we're in us-central1 and have higher capacity
                         
                         from google.auth import default, transport
                         creds, project = default()
@@ -696,7 +695,7 @@ def handle_nano_banana_phase(doc_ref, sku, name, ai_data):
         
     except Exception as e:
         logger.error(f"Generation phase failed for {sku}: {e}")
-        doc_ref.update({"status": "ENRICHMENT_FAILED", "enrichment_message": f"Generation error: {str(e)}"})
+        doc_ref.update({"status": "FAILED", "enrichment_message": f"Generation error: {str(e)}"})
 
 
 def handle_bg_removal_phase(doc_ref, sku, ai_data, mode="generated"):
@@ -706,10 +705,10 @@ def handle_bg_removal_phase(doc_ref, sku, ai_data, mode="generated"):
     import os
     from concurrent.futures import ThreadPoolExecutor, as_completed
     
-    fal_key = os.environ.get("FAL_KEY")
+    fal_key = os.environ.get("FAL_KEY", "").strip()
     if not fal_key:
         logger.error(f"Missing FAL_KEY for {sku}")
-        doc_ref.update({"status": "ENRICHMENT_FAILED", "enrichment_message": "Missing FAL_KEY for Background Removal"})
+        doc_ref.update({"status": "FAILED", "enrichment_message": "Missing FAL_KEY for Background Removal"})
         return
         
     service_url = "https://fal.run/fal-ai/bria/background/remove"
@@ -794,6 +793,6 @@ def handle_bg_removal_phase(doc_ref, sku, ai_data, mode="generated"):
             
     except Exception as e:
         logger.error(f"BG removal phase failed for {sku}: {e}")
-        doc_ref.update({"status": "ENRICHMENT_FAILED", "enrichment_message": f"BG removal error: {str(e)}"})
+        doc_ref.update({"status": "FAILED", "enrichment_message": f"BG removal error: {str(e)}"})
 
 

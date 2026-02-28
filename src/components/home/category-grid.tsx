@@ -4,37 +4,37 @@ import { TechBadge } from '@/components/ui/tech-badge';
 
 const categories = [
     {
-        title: 'Automotive Paints',
-        href: '/proionta/vafes',
+        title: 'Color Matching',
+        href: '/proionta/xromata-vasis',
         icon: PaintBucket,
         description: 'Precision color matching and high-durability bases.',
         ref: 'CAT-01'
     },
     {
         title: 'Primers & Substrates',
-        href: '/proionta/astaria',
+        href: '/proionta/astaria-ypostromata',
         icon: Layers,
         description: 'Foundation layers for perfect adhesion and surfacing.',
         ref: 'CAT-02'
     },
     {
-        title: 'Varnishes & Hardeners',
-        href: '/proionta/vernikia',
-        icon: SprayCan, // Using SprayCan as a proxy for varnish/finish
+        title: 'Varnishes & Finishes',
+        href: '/proionta/vernikia-finirismata',
+        icon: SprayCan,
         description: 'Crystal clear coats for ultimate protection and gloss.',
         ref: 'CAT-03'
     },
     {
-        title: 'Consumables',
-        href: '/proionta/analosima',
-        icon: Component, // Generic component icon for consumables
-        description: 'Masking tapes, abrasives, and protective gear.',
+        title: 'Preparation & Cleaning',
+        href: '/proionta/proetoimasia-katharismos',
+        icon: Component,
+        description: 'Degreasers, silicon cleaners, and surface prep.',
         ref: 'CAT-04'
     },
     {
         title: 'Tools & Equipment',
         href: '/proionta/ergaleia',
-        icon: Hammer, // Tools icon
+        icon: Hammer,
         description: 'Professional spray guns and workshop equipment.',
         ref: 'CAT-05'
     },

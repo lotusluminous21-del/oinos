@@ -2,8 +2,6 @@
 
 @plugin "tailwindcss-animate";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
   /* Brand Colors - High Contrast Industrial */
 
@@ -27,27 +25,27 @@
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
-  /* Neutral Scale - Stark Black & White */
-  --background: 0 0% 100%;
-  /* Pure White */
-  --foreground: 0 0% 0%;
-  /* Pure Black */
+  /* Neutral Scale - Pure White Mode Base */
+  --background: 210 20% 98%; /* Very light blue-gray off-white for contrast against pure white floating cards */
+  --foreground: 222 47% 11%; /* Very dark slate for soft black text */
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
+  --card-foreground: 222 47% 11%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 0%;
+  --popover-foreground: 222 47% 11%;
 
-  --border: 0 0% 88%;
-  /* Light Grey */
-  --input: 0 0% 88%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
   --ring: 189 98% 21%;
-  /* Primary */
 
-  /* Radius - Technical/Sharp */
-  --radius: 0.25rem;
-  /* 4px - Small, sharp */
+  /* Massive Radius for Pill geometry universally applied */
+  --radius: 2rem;
+  
+  /* Skeuomorphic Shadow Definitions mapped for Tailwind */
+  --shadow-skeuo-raised: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), inset 0 2px 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.05);
+  --shadow-skeuo-pressed: inset 0 2px 4px 0 rgb(0 0 0 / 0.06), inset 0 4px 8px 0 rgb(0 0 0 / 0.08), inset 0 -1px 0 0 rgba(255, 255, 255, 0.7);
+  --shadow-skeuo-float: 0 30px 60px -15px rgb(0 0 0 / 0.1), 0 20px 30px -10px rgb(0 0 0 / 0.05), inset 0 2px 1px 0 rgba(255, 255, 255, 1);
 
   /* Chart colors */
   --chart-1: 189 98% 21%;
@@ -55,47 +53,6 @@
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
-}
-
-.dark {
-  /* Dark Mode - The "Premium" Look */
-  /* Background: Almost Black #020408 */
-  --background: 220 60% 2%;
-  --foreground: 0 0% 100%;
-
-  --card: 220 40% 4%;
-  /* Slightly lighter black */
-  --card-foreground: 0 0% 100%;
-
-  --popover: 220 40% 4%;
-  --popover-foreground: 0 0% 100%;
-
-  --primary: 189 90% 40%;
-  /* Brighter Pacific Blue for Dark Mode */
-  --primary-foreground: 0 0% 0%;
-
-  --secondary: 222 30% 35%;
-  /* Lighter Navy */
-  --secondary-foreground: 0 0% 100%;
-
-  --muted: 217 33% 12%;
-  --muted-foreground: 215 20% 65%;
-
-  --accent: 217 33% 12%;
-  --accent-foreground: 0 0% 100%;
-
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-
-  --border: 217 33% 12%;
-  --input: 217 33% 12%;
-  --ring: 189 90% 40%;
-
-  --chart-1: 189 90% 50%;
-  --chart-2: 222 40% 50%;
-  --chart-3: 30 80% 55%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
 }
 
 @theme inline {
@@ -123,10 +80,15 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: calc(var(--radius));
-  --radius-lg: calc(var(--radius) + 2px);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: calc(var(--radius));
+  --radius-xl: calc(var(--radius) + 8px);
+  --radius-full: 9999px;
+  
+  --shadow-skeuo-raised: var(--shadow-skeuo-raised);
+  --shadow-skeuo-pressed: var(--shadow-skeuo-pressed);
+  --shadow-skeuo-float: var(--shadow-skeuo-float);
 
   /* Font Family Variables */
   --font-sans: var(--font-inter);

@@ -32,6 +32,9 @@ def process_catalogue_upload(event: storage_fn.CloudEvent[storage_fn.StorageObje
         print(f"Error in process_catalogue_upload wrapper: {e}")
 
 # --- 2. Product Enrichment Trigger ---
+from core.logger import get_logger
+main_logger = get_logger("functions.main")
+
 @firestore_fn.on_document_written(
     document="staging_products/{sku}",
     region="europe-west1",
@@ -41,19 +44,21 @@ def process_catalogue_upload(event: storage_fn.CloudEvent[storage_fn.StorageObje
 )
 def enrich_product(event: firestore_fn.Event[firestore_fn.Change[firestore_fn.DocumentSnapshot]]) -> None:
     try:
-        from ai.enrichment import enrich_product
-        enrich_product(event)
+        from ai.controller import EnrichmentController
+        EnrichmentController.handle_trigger(event)
     except Exception as e:
-        print(f"Error in enrich_product wrapper: {e}")
+        # PRISTINE LOGGING: Captures full traceback and saves to Firestore system_logs automatically
+        main_logger.error("Error in enrich_product wrapper", exc_info=True, sku=event.params.get("sku", "unknown"))
+        
         # Critical: Report system-level errors back to the document so the UI doesn't hang
         try:
-            if event.data.after:
+            if event.data and hasattr(event.data, "after") and event.data.after:
                 event.data.after.reference.update({
-                    "status": "ENRICHMENT_FAILED",
-                    "enrichment_message": f"System Error: {str(e)[:100]}"
+                    "status": "FAILED",
+                    "enrichment_message": f"Global App Error: {str(e)[:100]}"
                 })
         except Exception as report_err:
-            print(f"Failed to report error to Firestore: {report_err}")
+            main_logger.error("Failed to report error to Firestore document", exc_info=report_err)
 
 # --- 3. Chat Assistant Callable ---
 @https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_512)
@@ -98,6 +103,25 @@ def suggest_bundles(req: https_fn.CallableRequest) -> dict:
         print(f"Error in suggest_bundles wrapper: {e}")
         return {"error": str(e)}
 
+
+# --- 7. Expert Paint Advisor (Agentic RAG) ---
+@https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_512)
+def expert_chat(req: https_fn.CallableRequest) -> dict:
+    try:
+        from expert.main import expert_chat as expert_chat_handler
+        return expert_chat_handler(req)
+    except Exception as e:
+        print(f"Error in expert_chat wrapper: {e}")
+        return {"error": str(e)}
+
+@https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_256)
+def save_expert_project(req: https_fn.CallableRequest) -> dict:
+    try:
+        from expert.main import save_expert_project as save_handler
+        return save_handler(req)
+    except Exception as e:
+        print(f"Error in save_expert_project wrapper: {e}")
+        return {"error": str(e)}
 
 # Payment Modules (REMOVED)
 # User opted for Shopify Native Checkout + AADE Webhook
@@ -197,23 +221,51 @@ def pylon_sync_inventory(req: https_fn.Request) -> https_fn.Response:
         print(f"Error in pylon_sync_inventory: {e}")
         return https_fn.Response(f"Error: {str(e)}", status=500)
 
-@https_fn.on_request(region="europe-west1", timeout_sec=540)
+@https_fn.on_request(
+    region="europe-west1", 
+    timeout_sec=540,
+    invoker="public"
+)
 def pylon_sync_products(req: https_fn.Request) -> https_fn.Response:
     """
     Manually trigger Pylon -> Shopify Product Import (Drafts).
     """
     import asyncio
     from sync.products import sync_products_job
+
+    # Set CORS headers for the preflight request
+    if req.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return https_fn.Response('', status=204, headers=headers)
+
+    # Set CORS headers for the main request
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+
+    if req.method != "POST":
+        return https_fn.Response("Method Not Allowed", status=405, headers=headers)
     
     try:
-        asyncio.run(sync_products_job())
-        return https_fn.Response("Product Sync Triggered Successfully", status=200)
+        result = asyncio.run(sync_products_job())
+        headers['Content-Type'] = 'application/json'
+        return https_fn.Response(json.dumps({"status": "ok", "result": result}), status=200, headers=headers)
     except Exception as e:
         print(f"Error in pylon_sync_products: {e}")
-        return https_fn.Response(f"Error: {str(e)}", status=500)
+        headers['Content-Type'] = 'application/json'
+        return https_fn.Response(json.dumps({"status": "error", "error": str(e)}), status=500, headers=headers)
 
 
-@https_fn.on_request(region="europe-west1", timeout_sec=540)
+@https_fn.on_request(
+    region="europe-west1", 
+    timeout_sec=540,
+    invoker="public"
+)
 def pylon_ingest_csv(req: https_fn.Request) -> https_fn.Response:
     """
     Ingest Pylon CSV via HTTP Upload.
@@ -222,25 +274,74 @@ def pylon_ingest_csv(req: https_fn.Request) -> https_fn.Response:
     from firebase_admin import firestore
     from pylon.ingest import parse_pylon_csv, ingest_products_to_firestore
 
+    # Set CORS headers for the preflight request
+    if req.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return https_fn.Response('', status=204, headers=headers)
+
+    # Set CORS headers for the main request
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+
     if req.method != "POST":
-        return https_fn.Response("Method Not Allowed", status=405)
+        return https_fn.Response("Method Not Allowed", status=405, headers=headers)
     
     csv_content = req.get_data(as_text=True)
     if not csv_content:
-        return https_fn.Response("Empty body", status=400)
+        return https_fn.Response("Empty body", status=400, headers=headers)
         
     try:
         # 1. Parse
         products = parse_pylon_csv(csv_content)
         
-        # 2. Ingest
+        # 2. Ingest to Firestore
         db = firestore.client()
         stats = ingest_products_to_firestore(products, db)
         
-        return https_fn.Response(json.dumps(stats), status=200, mimetype='application/json')
+        # We intentionally DO NOT start the pipeline here.
+        # Products remain in "IMPORTED" state until manually triggered by the Admin.
+        
+        return https_fn.Response(json.dumps(stats), status=200, mimetype='application/json', headers=headers)
     except Exception as e:
         print(f"Error in pylon_ingest_csv: {e}")
-        return https_fn.Response(f"Error: {str(e)}", status=500)
+        return https_fn.Response(f"Error: {str(e)}", status=500, headers=headers)
+
+@https_fn.on_call(
+    region="europe-west1",
+    memory=options.MemoryOption.MB_512,
+    timeout_sec=60, 
+)
+def trigger_pipeline_session(req: https_fn.CallableRequest) -> dict:
+    """
+    Manually triggers the end-to-end AI Enrichment Pipeline for a list of SKUs.
+    This routes to the staggered governor in `ai.batch_processor`.
+    """
+    try:
+        data = req.data
+        skus = data.get("skus", [])
+        
+        print(f"Manual pipeline session requested for {len(skus)} SKUs: {skus}")
+        
+        if not skus:
+            return {"error": "Missing SKUs"}
+            
+        from ai.batch_processor import start_pipeline_session
+        pipeline_result = start_pipeline_session(skus)
+        
+        return {
+            "success": True, 
+            "message": f"Pipeline scheduled for {pipeline_result.get('count', 0)} SKUs in {len(pipeline_result.get('batch_ids', []))} batches.",
+            "batch_ids": pipeline_result.get("batch_ids",[])
+        }
+    except Exception as e:
+        print(f"Failed to trigger pipeline session: {e}")
+        return {"error": str(e)}
 @https_fn.on_call(
     region="europe-west1",
     memory=options.MemoryOption.MB_512,

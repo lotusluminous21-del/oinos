@@ -25,6 +25,16 @@ service cloud.firestore {
       // So, strict: ONLY Admin can write to users doc OR use a specific function.
       // Actually, standard pattern: Allow update if requesting Resource data.role == resource.data.role (role doesn't change).
       allow update: if isOwner(uid) && request.resource.data.role == resource.data.role;
+
+      // Allow users to manage their own expert sessions
+      match /expert_sessions/{sessionId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // Allow users to manage their own projects
+      match /projects/{projectId} {
+        allow read, write: if isOwner(uid);
+      }
     }
 
     // 2. Staging Products (Consolidated Ingestion)
@@ -51,7 +61,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 6. Default Block (Safety Net)
+    // 6. System Logs (Observability)
+    // Anyone can create logs. Only admins can read/manage them.
+    match /system_logs/{document=**} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 7. Default Block (Safety Net)
     match /{document=**} {
       allow read, write: if false; 
     }

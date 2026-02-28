@@ -13,6 +13,7 @@ class LLMConfig:
     PROJECT_ID = "pavlicevits-9a889"
     REGION = os.getenv("GCP_REGION", "europe-west1")
     REGION_IMAGEN = "us-central1"  # Dedicated region for higher Imagen quotas
+    REGION_GEMINI_IMAGE = "us-central1"  # Dedicated region for gemini-2.5-flash-image
 
     # GCS Configuration for Batch Processing
     BATCH_INPUT_GCS_PATH = f"gs://{PROJECT_ID}-batch-inputs"
@@ -39,6 +40,7 @@ class LLMConfig:
         )
         
     @classmethod
-    def get_image_client(cls):
-        """Returns a google-genai Client explicitly routed to the high-quota image processing region."""
-        return cls.get_client(force_region=cls.REGION_IMAGEN)
+    def get_image_client(cls, model_type: str = "gemini"):
+        """Returns a google-genai Client explicitly routed to the appropriate image processing region."""
+        region = cls.REGION_IMAGEN if model_type == "imagen" else cls.REGION_GEMINI_IMAGE
+        return cls.get_client(force_region=region)

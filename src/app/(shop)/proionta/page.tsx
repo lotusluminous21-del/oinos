@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/container"
 import { FilterSidebar } from "@/components/shop/filter-sidebar"
 import { ProductGrid } from "@/components/shop/product-grid"
 import { useProducts } from "@/hooks/useShopifyProducts"
+import { useSearchParams } from "next/navigation"
 import {
     Select,
     SelectContent,
@@ -16,7 +17,13 @@ import { Button } from "@/components/ui/button"
 import { Filter, SlidersHorizontal } from "lucide-react"
 
 export default function ProductsPage() {
-    const { products, loading, error } = useProducts()
+    const searchParams = useSearchParams()
+    const category = searchParams.get('category')
+
+    // Pass the category as a product_type filter to Shopify
+    const { products, loading, error } = useProducts({
+        query: category ? `product_type:'${category}'` : undefined
+    })
 
     return (
         <div className="bg-background min-h-screen pb-20">
@@ -24,7 +31,9 @@ export default function ProductsPage() {
             <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-[var(--header-height)] z-30 mt-32">
                 <Container>
                     <div className="flex h-16 items-center justify-between py-4">
-                        <h1 className="text-2xl font-heading font-bold text-foreground">Προϊόντα</h1>
+                        <h1 className="text-2xl font-heading font-bold text-foreground capitalize">
+                            {category || "Κατηγορίες"}
+                        </h1>
 
                         <div className="flex items-center gap-4">
                             {/* Mobile Filter Trigger */}

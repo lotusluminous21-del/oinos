@@ -5,7 +5,7 @@ import {
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/skeumorphic/accordion"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
@@ -26,7 +26,17 @@ export function FilterSidebar() {
                     <AccordionTrigger className="text-sm font-medium">Κατηγορία</AccordionTrigger>
                     <AccordionContent>
                         <div className="space-y-3 pt-2">
-                            {["Βαφές", "Αστάρια", "Βερνίκια", "Σκληρυντές", "Διαλυτικά"].map((category) => (
+                            {[
+                                "Προετοιμασία & Καθαρισμός",
+                                "Αστάρια & Υποστρώματα",
+                                "Χρώματα Βάσης",
+                                "Βερνίκια & Φινιρίσματα",
+                                "Σκληρυντές & Ενεργοποιητές",
+                                "Στόκοι & Πλαστελίνες",
+                                "Πινέλα & Εργαλεία",
+                                "Διαλυτικά & Αραιωτικά",
+                                "Αξεσουάρ"
+                            ].map((category) => (
                                 <div key={category} className="flex items-center space-x-2">
                                     <Checkbox id={`cat-${category}`} />
                                     <Label htmlFor={`cat-${category}`} className="text-sm font-normal cursor-pointer">

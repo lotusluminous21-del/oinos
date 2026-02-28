@@ -1,0 +1,81 @@
+# Backend AI Pipeline Monolith - Implementation Plan
+
+## Goal
+To deconstruct the legacy, patch-worked [ai](file:///c:/Users/lotus/Documents/pavlicevits/src/app/admin/products/%5Bsku%5D/page.tsx#61-522) module and resynthesize it into a robust, monolithic backend engine. This new engine will align with the "Air Traffic Control" (ATC) frontend paradigm, prioritizing autonomous execution, predictable state transitions, error resilience, and explicit Checkpoint (Human-in-the-Loop) pauses.
+
+---
+
+## 1. Architectural Flaws of the Legacy System
+1. **Implicit State Machine**: The legacy [enrichment.py](file:///c:/Users/lotus/Documents/pavlicevits/functions/ai/enrichment.py) relies on a fragile `if/elif` chain checking string statuses (`PENDING_METADATA`, `PENDING_IMAGE_SOURCING`). It acts as a single massive trigger function without strict state-transition enforcement.
+2. **Coupled Concerns**: [enrichment.py](file:///c:/Users/lotus/Documents/pavlicevits/functions/ai/enrichment.py) mixes high-level routing with low-level prompt construction, API retries, and Firestore writes.
+3. **Fragile Error Handling**: Errors often result in silent failures or generic `ENRICHMENT_FAILED` statuses that leave the UI hanging or require manual database fiddling to resume.
+4. **Poor Testability and Extensibility**: Adding new AI models or changing the prompt structure requires touching the core routing logic.
+5. **Redundant Storage Writes**: The atomic reset logic is scattered and implicitly relies on specific file naming conventions.
+
+## 2. The New Monolithic Engine (The "Enrichment Controller")
+
+We will replace the `functions/ai/` directory (now backed up to `functions/legacy_ai/`) with a newly structured, tightly coupled but internally decoupled, engine.
+
+### 2.1 Core Principle: Strict State Machine (The Pipeline)
+The system will operate as a strict State Machine. A product moves one way through the pipeline unless explicitly sent back by a Human or a Retry mechanism.
+
+**States (Firestore `status`):**
+1.  `RAW_INGESTED`: Uploaded via Pylon CSV. Waiting for intake.
+2.  `GENERATING_METADATA`: AI is extracting Greek data and dynamic variants.
+3.  `NEEDS_METADATA_REVIEW`: **(HITL Checkpoint)** AI confidence is low, or system is configured to halt here.
+4.  `SOURCING_IMAGES`: System is fetching web images based on metadata.
+5.  `NEEDS_IMAGE_REVIEW`: **(HITL Checkpoint)** No high-confidence image found. Admin must provide one.
+6.  `GENERATING_STUDIO`: Imagen/Gemini is rendering variants.
+7.  `REMOVING_BACKGROUND`: Fal.ai is processing final images.
+8.  `READY_FOR_PUBLISH`: Terminal success state.
+
+### 2.2 Directory Structure
+The new `ai/` module will be structured for clarity and separation of concerns:
+
+```
+functions/ai/
+├── __init__.py
+├── controller.py      # The main State Machine and Event Trigger router.
+├── agents/            # Isolated logic for interacting with external APIs
+│   ├── metadata_agent.py  # Gemini text extraction & structuring
+│   ├── vision_agent.py    # Gemini/Imagen studio generation
+│   └── utility_agent.py   # Fal.ai background removal
+├── models.py          # Pydantic schemas for strict IO validation (ProductEnrichmentData)
+├── storage.py         # Dedicated module for Firebase Storage operations (atomic resets)
+└── prompts/           # (Optional) Externalized prompt templates
+```
+
+### 2.3 Key Improvements
+
+#### A. The `EnrichmentController` (Replacing `enrichment_trigger`)
+Instead of a giant `if/elif` block, the controller maps `status` changes to specific runner functions. Crucially, it handles **global error catching and state rollback**, ensuring a product never gets stuck in a "GENERATING" state indefinitely if an API times out.
+
+#### B. The `MetadataAgent` (Robust Data Extraction)
+- **Strict Output Schema**: It will enforce the Pydantic schema using Gemini's Structured Outputs (JSON mode with schema).
+- **Confidence Scoring**: It will calculate a rudimentary confidence score based on the input text length and parsing success. If `confidence < 0.7`, it sets state to `NEEDS_METADATA_REVIEW` instead of automatically advancing.
+
+#### C. The `VisionAgent` (Unified Image Pipeline)
+- **Concurrency**: It will natively use `asyncio` or ThreadPools for variant generation, identical to how the background removal currently works.
+- **Quota Management**: The 60-second delay for Imagen will be centralized in a dedicated `rate_limiter` utility, so the business logic isn't cluttered with `time.sleep()`.
+
+#### D. The `UtilityAgent` (Background Removal)
+- Will retain the fast, concurrent Fal.ai implementation, but will be abstracted so the controller just calls `UtilityAgent.strip_backgrounds(image_dict)`.
+
+### 2.4 Human-in-the-Loop (HITL) Integration
+The backend will explicitly support "Overrides". If the UI sends an update modifying `ai_data.title` while in `NEEDS_METADATA_REVIEW`, the controller detects the manual intervention and advances the state to `SOURCING_IMAGES` automatically.
+
+## 3. Implementation Steps
+
+1.  **Schema Definition**: Move and refine the `ProductEnrichmentData` Pydantic models into `ai/models.py`.
+2.  **Storage Utilities**: Move the image uploading/atomic reset logic into `ai/storage.py`.
+3.  **Agent Construction**: Build `metadata_agent.py`, `vision_agent.py`, and `utility_agent.py` by extracting and refining the logic from `legacy_ai/enrichment.py`.
+4.  **The Controller**: Build `ai/controller.py` to route Firestore triggers to the appropriate agents and handle state transitions.
+5.  **Main/Trigger Update**: Update `functions/main.py` to point the `enrich_product` trigger to the new `EnrichmentController`.
+
+---
+
+## User Review Required
+> [!IMPORTANT]
+> Please review this backend architectural blueprint.
+> 1. Does the **State Machine** pipeline (`RAW` -> `METADATA` -> `IMAGES` -> `STUDIO` -> `READY`) correctly represent the ideal autonomous flow?
+> 2. Are the defined **HITL Checkpoints** (`NEEDS_METADATA_REVIEW`, `NEEDS_IMAGE_REVIEW`) sufficient, or should it pause automatically after *every* stage for maximum safety?

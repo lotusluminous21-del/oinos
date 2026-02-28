@@ -1,0 +1,48 @@
+﻿
+> eshop_template@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+node.exe : ΓÜá The "middleware" file conventio
+n is deprecated. Please use "proxy" instead. L
+earn more: https://nextjs.org/docs/messages/mi
+ddleware-to-proxy
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Use
+rs\lotus\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 
+   ΓÜá The "middle...leware-to-proxy:String)  
+   [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandEr 
+   ror
+ 
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 16.9s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/ai-elements/terminal.tsx:136:
+21
+Type error: Property 'children' is missing in 
+type '{ className: string; }' but required in 
+type 'TextShimmerProps'.
+
+[0m [90m 134 |[39m       {[33m...[39mprop
+s}
+ [90m 135 |[39m     [33m>[39m
+[31m[1m>[22m[39m[90m 136 |[39m       {ch
+ildren [33m?[39m[33m?[39m [33m<[39m[33m
+Shimmer[39m className[33m=[39m[32m"w-16"[
+39m [33m/[39m[33m>[39m}
+ [90m     |[39m                     [31m[1
+m^[22m[39m
+ [90m 137 |[39m     [33m<[39m[33m/[39m[
+33mdiv[39m[33m>[39m
+ [90m 138 |[39m   )[33m;[39m
+ [90m 139 |[39m }[33m;[39m[0m
+Next.js build worker exited with code: 1 and s
+ignal: null

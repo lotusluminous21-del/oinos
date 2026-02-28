@@ -40,40 +40,7 @@ INITIAL_BACKOFF = 30          # Starting backoff on 429
 REQUEST_TIMEOUT = 20          # Image download timeout
 LOCK_TIMEOUT_SECONDS = 180    # 3 minutes without an inline heartbeat = dead worker
 
-STUDIO_PROMPTS = {
-    "clean": """Using the provided image ONLY as a reference for the product's labels, colors, and shape, generate a BRAND NEW photography with these exact rules:
-1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch, resting on an **invisible, seamless pure white studio floor**.
-2.  **NEGATIVE INSTRUCTIONS**: DO NOT inherit the tilt, depth of field, or shadow placement from the original photo. **Wipe out all original specular highlights.** No visible pedestals or platforms.
-3.  **Composition & Angle**: Show the product from a straight-on, front-facing eye-level angle. Center it vertically/horizontally. The product should occupy 75-80% of the canvas height. Full visibility (not cut off).
-4.  **Lighting & style**: Use soft, even, high-key studio lighting. **The floor and background must be identical pure white (#FFFFFF), with only a realistic soft shadow at the base to indicate the surface.** Generate new, clean geometric highlights from studio softboxes on the product.
-5.  **Subject Isolation**: EXTRACT A SINGLE ITEM. If the source shows multiple items, generate ONLY ONE single item. Do not show a group.
-6.  **Identity Accuracy**: PRESERVE THE IDENTITY (text, labels, logos, colors). Ensure all text on the label is legible and identical to the source, but allow the product's physical orientation to be corrected to the straight-on angle defined in Point 3.
-7.  **Background**: Pure white (#FFFFFF) background with NO texture.""",
-
-    "realistic": """Using the provided image ONLY as a reference for the product's labels, colors, and shape, generate a BRAND NEW photography with these exact rules:
-1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch.
-2.  **NEGATIVE INSTRUCTIONS**: DO NOT inherit the lighting direction or camera tilt from the source.
-3.  **Composition & Lighting**: Side-on natural daylight creating realistic soft shadows. Show the product from a straight-on, eye-level angle.
-4.  **Atmosphere**: Clean, light-grey polished concrete surface. Background is a softly blurred, minimalist workshop setting.
-5.  **Identity Accuracy**: Keep the branding and labels EXACTLY as they appear — preserve all text and logos, but render them from the new documentation perspective.
-6.  **Aesthetic**: Authentic, premium yet practical workshop vibe.""",
-
-    "modern": """Using the provided image ONLY as a reference for the product's labels, colors, and shape, generate a BRAND NEW photography with these exact rules:
-1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch, resting on an **invisible, seamless pure white studio floor**.
-2.  **NEGATIVE INSTRUCTIONS**: DO NOT follow the orientation or perspective of the original image. **Completely discard original lighting and reflections.** No visible pedestals or platforms.
-3.  **Composition & Camera**: Straight-on, front-facing eye-level angle. Center vertically/horizontally. Product occupies 75-80% of canvas height.
-4.  **Vibrant Lighting**: Professional multi-point studio lighting with subtle colored rim lighting (teal and purple) on the product edges. **The product surface must actively capture sharp reflections from the surrounding liquid splashes.**
-5.  **Explosive Visuals**: SURROUND the product with a mild, artistic crown of dynamic high-viscosity liquid splashes and droplets in dark teal and deep purple. 
-6.  **Identity Accuracy**: Extract the main product unit. PRESERVE THE BRANDING AND TEXT Identity, but re-render the physical position to be straight-on.
-7.  **Background**: Pure white (#FFFFFF) background; the floor and background are the same color, differentiated only by the splashes and the product's soft contact shadow.
-8.  **Aesthetic**: Tech-premium, sharp focus, high contrast with vibrant decorative accents."""
-}
-
-IMAGEN_PROMPTS = {
-    "clean": "Ultra-sharp professional studio product photography. The product is center-framed and resting on a seamless, invisible pure white studio floor in a high-key, pure white setting. Lighting: **Recalibrated** clean 5500K daylight spectrum softbox lighting; the floor and background merge perfectly into #FFFFFF, with only a **soft, realistic ambient occlusion shadow at the base**. No pedestals. New geometric highlights override the original image lighting.",
-    "realistic": "Professional cinematic product photography. The product sits on a high-texture, dark-grey polished concrete surface with realistic micro-reflections. Environment: A minimalist, high-end design workshop with soft, volumetric natural daylight streaming from a side window. Lighting: Warm 4000K sunlight with subtle lens bloom and soft, elongated natural shadows. Camera: 50mm f/1.8 depth of field, sharp focus on the product label with a creamy background blur.",
-    "modern": "High-end commercial avant-garde photography. The product rests on an invisible white studio floor and is surrounded by a mild decorative crown of high-viscosity glossy liquid splashes in deep teal and vibrant neon purple. Lighting: **Environment-driven** tech-premium setup; the floor and background merge into pure #FFFFFF. The product surface must **reflect the vibrant teal and magenta colors from the splashes**, replacing original specular highlights. Shadow: Soft, subtle contact shadow at the base."
-}
+# We rely entirely on `ai/agents/vision_agent.py` for Studio text prompts and API generation logic.
 
 DEFAULT_ENVIRONMENT = "clean"
 DEFAULT_MODEL = "gemini"
@@ -82,121 +49,8 @@ DEFAULT_MODEL = "gemini"
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _upload_image_to_storage(image_bytes: bytes, mime_type: str, sku: str) -> str:
-    from firebase_admin import storage as fb_storage
-    bucket = fb_storage.bucket()
-    blob = bucket.blob(f"generated-images/{sku}/studio_base.jpg")
-    blob.cache_control = "no-cache, max-age=0"
-    blob.upload_from_string(image_bytes, content_type=mime_type)
-    blob.make_public()
-    return blob.public_url
-
-def _download_source_image(url: str) -> tuple:
-    resp = requests.get(url, timeout=REQUEST_TIMEOUT, verify=False)
-    resp.raise_for_status()
-    mime_type = resp.headers.get("Content-Type", "image/jpeg")
-    return resp.content, mime_type
-
-def _heartbeat_lock(db, batch_id: str):
-    """Inline heartbeat to keep the global lock alive."""
-    try:
-        db.collection("system_config").document("studio_lock").set({
-            "active_batch_id": batch_id,
-            "updated_at": firestore.SERVER_TIMESTAMP
-        }, merge=True)
-    except Exception as e:
-        logger.warning(f"[Studio {batch_id}] Heartbeat update failed: {e}")
-
-def _generate_image_with_backoff(client, db, image_data: bytes, mime_type: str, prompt: str, model_type: str, batch_id: str) -> Any:
-    """Call Gemini/Imagen API with strict, thread-safe exponential backoff."""
-    delay = INITIAL_BACKOFF
-    batch_ref = db.collection("enrichment_batches").document(batch_id)
-
-    for attempt in range(MAX_RETRIES + 1):
-        try:
-            if model_type == "imagen":
-                import base64
-                from google.auth import default, transport
-                creds, _ = default()
-                creds.refresh(transport.requests.Request())
-                
-                region = LLMConfig.REGION_IMAGEN
-                project_id = LLMConfig.PROJECT_ID
-                model_id = ModelName.IMAGE_RECONTEXT.value
-                endpoint = f"https://{region}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{region}/publishers/google/models/{model_id}:predict"
-                
-                payload = {
-                    "instances": [{
-                        "prompt": prompt,
-                        "productImages": [{"image": {"bytesBase64Encoded": base64.b64encode(image_data).decode("utf-8")}}]
-                    }],
-                    "parameters": {"sampleCount": 1, "addWatermark": False, "seed": 42, "enhancePrompt": False}
-                }
-                headers = {"Authorization": f"Bearer {creds.token}", "Content-Type": "application/json"}
-                
-                response = requests.post(endpoint, json=payload, headers=headers, timeout=60)
-                response.raise_for_status()
-                return response.json()
-            else:
-                response = client.models.generate_content(
-                    model=LLMConfig.get_image_model_name(model_type),
-                    contents=[
-                        types.Content(role="user", parts=[
-                            types.Part.from_bytes(data=image_data, mime_type=mime_type),
-                            types.Part.from_text(text=prompt)
-                        ])
-                    ],
-                    config=types.GenerateContentConfig(temperature=0.3, seed=42)
-                )
-                return response
-
-        except Exception as e:
-            error_str = str(e)
-            if ("429" in error_str or "RESOURCE_EXHAUSTED" in error_str) and attempt < MAX_RETRIES:
-                # Distinguish between actual Quota exhaustion and Google Server Capacity issues
-                is_capacity_issue = "Resource exhausted" in error_str and "quota" not in error_str.lower()
-                
-                # Ensure Imagen gets a minimum of 65s even during backoff multipliers
-                min_wait = max(delay, DELAY_IMAGEN if model_type == "imagen" else 0)
-                
-                # If Google's servers are full, trying again in 30s is a waste of a retry. Force a longer wait.
-                if is_capacity_issue and min_wait < 60:
-                    min_wait = 60
-                
-                sleep_time = int(min_wait + random.uniform(0, 10))
-                
-                # Expose the precise nature of the error in logs for easier debugging
-                err_type = "GOOGLE SERVER CAPACITY FULL" if is_capacity_issue else "PROJECT QUOTA EXCEEDED"
-                logger.warning(f"[Studio {batch_id}] 429 {err_type}. Sleeping {sleep_time}s (attempt {attempt + 1}/{MAX_RETRIES}) | Error snippet: {error_str[:150]}")
-                
-                # Interruptible inline sleep that maintains the lock heartbeat
-                for _ in range(sleep_time):
-                    time.sleep(1)
-                    if _ % 10 == 0:
-                        _heartbeat_lock(db, batch_id)
-                        snap = batch_ref.get()
-                        if snap.exists and snap.get("status") == "ABORTED":
-                            raise Exception("Aborted by user during rate-limit backoff")
-                
-                delay *= 2
-                continue
-            raise
-
-def _extract_image_from_response(response, sku: str) -> Optional[bytes]:
-    import base64
-    if isinstance(response, dict):
-        if response.get("predictions"):
-            pred = response["predictions"][0]
-            if "bytesBase64Encoded" in pred:
-                return base64.b64decode(pred["bytesBase64Encoded"])
-        return None
-
-    if not response.candidates or not response.candidates[0].content:
-        return None
-    for part in response.candidates[0].content.parts:
-        if part.inline_data:
-            return part.inline_data.data
-    return None
+# Delegate generation entirely to VisionAgent
+from .agents.vision_agent import VisionAgent
 
 # ---------------------------------------------------------------------------
 # 1. Start Studio Session
@@ -251,6 +105,58 @@ def start_studio_session(skus: List[str], environment: str = None, generation_mo
                         "enrichment_message": "Queued for Studio Generation..."
                     })
             except Exception as e:
+                pass
+
+    return {"batch_ids": batch_ids, "count": len(skus)}
+
+# ---------------------------------------------------------------------------
+# 1.B Start Pipeline Session (Staggered Governor)
+# ---------------------------------------------------------------------------
+
+def start_pipeline_session(skus: List[str]) -> dict:
+    """
+    Creates batch tracking docs for the entire text/image pipeline.
+    Instead of calling AI directly, the worker will just change the status
+    to GENERATING_METADATA sequentially to throttle the Firestore triggers.
+    """
+    db = firestore.client()
+    # Larger chunks since text is faster and we stagger internally
+    MAX_BATCH_SIZE = 15 
+    
+    sku_chunks = [skus[i:i + MAX_BATCH_SIZE] for i in range(0, len(skus), MAX_BATCH_SIZE)]
+    batch_ids = []
+
+    for idx, chunk in enumerate(sku_chunks):
+        batch_id = str(uuid.uuid4())
+        batch_ids.append(batch_id)
+        
+        initial_status = "QUEUED"
+        sku_results = {sku: {"status": initial_status, "error": None} for sku in chunk}
+        
+        db.collection("enrichment_batches").document(batch_id).set({
+            "job_name": f"pipeline-governor-{batch_id}",
+            "mode": "pipeline", # NEW MODE
+            "status": initial_status,
+            "skus": chunk,
+            "sku_results": sku_results,
+            "total_count": len(chunk),
+            "completed_count": 0,
+            "failed_count": 0,
+            "priority": "normal",
+            "created_at": firestore.SERVER_TIMESTAMP,
+            "updated_at": firestore.SERVER_TIMESTAMP,
+        })
+        
+        # Mark products as pending in the queue
+        for sku in chunk:
+            try:
+                db.collection("staging_products").document(sku).update({
+                    "status": "BATCH_GENERATING",
+                    "enrichment_message": "Queued for automated pipeline...",
+                    "ai_data": firestore.DELETE_FIELD,
+                    "failed_attempts": 0
+                })
+            except Exception:
                 pass
 
     return {"batch_ids": batch_ids, "count": len(skus)}
@@ -326,6 +232,7 @@ def process_studio_queue(batch_id: str) -> dict:
     sku_results = batch_data.get("sku_results", {})
     environment = batch_data.get("environment", DEFAULT_ENVIRONMENT)
     generation_model = batch_data.get("generation_model", DEFAULT_MODEL)
+    mode = batch_data.get("mode", "parallel") # "parallel" (Studio) or "pipeline" (Governor)
 
     completed = 0
     failed = 0
@@ -345,28 +252,73 @@ def process_studio_queue(batch_id: str) -> dict:
 
         logger.info(f"[Studio {batch_id}] Processing [{i+1}/{len(skus)}]: {sku}")
         
-        # Process Image
-        result = _process_single_product(client, db, sku, batch_id, environment, generation_model)
-        
-        if result["success"]:
-            completed += 1
-            sku_results[sku] = {"status": "COMPLETED", "error": None, "image_url": result["image_url"]}
+        if mode == "pipeline":
+            # PIPELINE GOVERNOR MODE: Just trigger the first state and sleep
+            try:
+                db.collection("staging_products").document(sku).update({
+                    "status": "GENERATING_METADATA",
+                    "enrichment_message": "Pipeline initiated..."
+                })
+                completed += 1
+                sku_results[sku] = {"status": "COMPLETED", "error": None}
+                # Strict 15-second throttle between metadata triggers
+                delay = 15 
+            except Exception as e:
+                failed += 1
+                sku_results[sku] = {"status": "FAILED", "error": str(e)}
+                delay = 0
+
         else:
-            failed += 1
-            sku_results[sku] = {"status": "FAILED", "error": result["error"]}
+            # STUDIO GENERATION MODE (Traditional Parallel)
+            doc_ref = db.collection("staging_products").document(sku)
+            doc = doc_ref.get()
+            
+            if doc.exists:
+                data = doc.to_dict()
+                try:
+                    # Leverage the highly-calibrated, rate-limit safe VisionAgent directly!
+                    # Pass the batch's environment and model down to override defaults if desired.
+                    ai_data = data.get("ai_data", {})
+                    ai_data["environment"] = environment
+                    ai_data["generation_model"] = generation_model
+                    data["ai_data"] = ai_data
+                    
+                    VisionAgent.generate_studio(doc_ref, data)
+                    
+                    # If it didn't throw an exception, VisionAgent successfully pushed the final state.
+                    completed += 1
+                    sku_results[sku] = {"status": "COMPLETED", "error": None}
+                    
+                    # Apply Rate Limit padding ONLY if we successfully executed a generation
+                    delay = DELAY_IMAGEN if generation_model == "imagen" else DELAY_GEMINI
+                except Exception as e:
+                    failed += 1
+                    error_str = str(e)[:150]
+                    sku_results[sku] = {"status": "FAILED", "error": error_str}
+                    # Handle failure gracefully
+                    from .controller import EnrichmentController
+                    EnrichmentController._handle_agent_failure(doc_ref, data, f"Studio error: {error_str[:80]}")
+                    delay = 0 # Skip rate limit timeout if execution failed
+            else:
+                failed += 1
+                sku_results[sku] = {"status": "FAILED", "error": "Product missing"}
+                delay = 0 # Skip rate limit timeout if product is entirely deleted
 
         # Update batch & heartbeat the lock
         batch_ref.update({
             "sku_results": sku_results, "completed_count": completed, 
             "failed_count": failed, "updated_at": firestore.SERVER_TIMESTAMP
         })
-        _heartbeat_lock(db, batch_id)
+        # Internal heartbeat for the lock since VisionAgent took over
+        try:
+            db.collection("system_config").document("studio_lock").set({
+                "active_batch_id": batch_id,
+                "updated_at": firestore.SERVER_TIMESTAMP
+            }, merge=True)
+        except Exception: pass
 
-        # Rate Limit Delay between SKUs
-        # FIXED: Delay is now applied unconditionally after an API call, even on the last item in a batch.
-        # This prevents the next batch from jumping in too early and violating rate limits across boundaries.
-        if result.get("api_called", True):
-            delay = DELAY_IMAGEN if generation_model == "imagen" else DELAY_GEMINI
+        # Apply computed delay safely maintaining the lock
+        if delay > 0:
             for _ in range(delay):
                 time.sleep(1)
                 if _ % 10 == 0: 
@@ -399,68 +351,24 @@ def process_studio_queue(batch_id: str) -> dict:
     # to pick up the next QUEUED batch seamlessly now that the lock is free.
     return {"status": final_status, "completed": completed, "failed": failed}
 
-def _process_single_product(client, db, sku: str, batch_id: str, environment: str, generation_model: str) -> dict:
-    doc_ref = db.collection("staging_products").document(sku)
+
+
+def _heartbeat_lock(db, batch_id: str):
+    """Updates the global lock timestamp to prevent cron from stealing the lock."""
     try:
-        doc = doc_ref.get()
-        if not doc.exists: return {"success": False, "error": "Product not found", "api_called": False}
-
-        data = doc.to_dict()
-        source_url = data.get("ai_data", {}).get("selected_images", {}).get("base")
-        if not source_url:
-            images = data.get("ai_data", {}).get("selected_images", {})
-            source_url = images[next(iter(images))] if images else None
-            
-        if not source_url: return {"success": False, "error": "No source image selected", "api_called": False}
-
-        # 1. Download & Process Image locally (No AI API called yet)
-        try:
-            image_data, mime_type = _download_source_image(source_url)
-            image_data = normalize_product_image(image_data)
-        except Exception as e:
-            error_str = f"Image download/processing error: {str(e)[:150]}"
-            try:
-                doc_ref.update({"status": "ENRICHMENT_FAILED", "enrichment_message": f"Studio error: {error_str[:80]}"})
-            except: pass
-            return {"success": False, "error": error_str, "api_called": False}
-        
-        prompt = IMAGEN_PROMPTS.get(environment, IMAGEN_PROMPTS["clean"]) if generation_model == "imagen" else STUDIO_PROMPTS.get(environment, STUDIO_PROMPTS["clean"])
-        
-        # 2. Make AI API Call
-        try:
-            response = _generate_image_with_backoff(client, db, image_data, "image/jpeg", prompt, generation_model, batch_id)
-        except Exception as e:
-            error_str = str(e)[:150]
-            try:
-                doc_ref.update({"status": "ENRICHMENT_FAILED", "enrichment_message": f"Studio error: {error_str[:80]}"})
-            except: pass
-            return {"success": False, "error": error_str, "api_called": True}
-
-        img_bytes = _extract_image_from_response(response, sku)
-        if not img_bytes: return {"success": False, "error": "No image data returned from AI", "api_called": True}
-
-        image_url = _upload_image_to_storage(img_bytes, "image/jpeg", sku)
-        
-        doc_ref.update({
-            "ai_data.generated_images.base": image_url,
-            "status": "PENDING_STUDIO_REVIEW",
-            "enrichment_message": "Studio image generated successfully"
-        })
-        return {"success": True, "image_url": image_url, "api_called": True}
-
+        db.collection("system_config").document("studio_lock").set({
+            "active_batch_id": batch_id,
+            "updated_at": firestore.SERVER_TIMESTAMP
+        }, merge=True)
     except Exception as e:
-        error_str = str(e)[:150]
-        try:
-            doc_ref.update({"status": "ENRICHMENT_FAILED", "enrichment_message": f"Studio error: {error_str[:80]}"})
-        except: pass
-        return {"success": False, "error": error_str, "api_called": False}
+        logger.warning(f"[Studio {batch_id}] Inline heartbeat failed: {e}")
 
 def _handle_abort(db, batch_ref, skus, sku_results, completed, failed):
     batch_id = batch_ref.id
     for sku in skus:
         if sku_results.get(sku, {}).get("status") not in ("COMPLETED", "FAILED"):
             sku_results[sku] = {"status": "FAILED", "error": "Aborted by user"}
-            try: db.collection("staging_products").document(sku).update({"status": "ENRICHMENT_FAILED", "enrichment_message": "Session aborted"})
+            try: db.collection("staging_products").document(sku).update({"status": "FAILED", "enrichment_message": "Session aborted"})
             except: pass
             
     batch_ref.update({
@@ -480,6 +388,13 @@ def abort_studio_session(batch_ids: List[str]) -> dict:
     """
     db = firestore.client()
     count = 0
+    
+    # Handle Global Abort Override
+    if "GLOBAL" in batch_ids:
+        logger.info("Global Abort explicitly requested. Stopping all active batches.")
+        batches_query = db.collection("enrichment_batches").where(filter=firestore.FieldFilter("status", "in", ["QUEUED", "RUNNING"])).get()
+        batch_ids = [doc.id for doc in batches_query] # Override input with all active IDs
+
     for b_id in batch_ids:
         try:
             batch_ref = db.collection("enrichment_batches").document(b_id)
@@ -492,6 +407,22 @@ def abort_studio_session(batch_ids: List[str]) -> dict:
                         "updated_at": firestore.SERVER_TIMESTAMP
                     })
                     count += 1
+                    
+                    # Instantly push the abort down to the current SKUs so blocking agents can break
+                    skus = batch_doc.to_dict().get("skus", [])
+                    for sku in skus:
+                        try:
+                            sku_ref = db.collection("staging_products").document(sku)
+                            sku_snap = sku_ref.get()
+                            # Only abort items actively in the processing queue
+                            if sku_snap.exists and sku_snap.to_dict().get("status") in ["BATCH_GENERATING", "GENERATING_STUDIO", "GENERATING_METADATA", "SOURCING_IMAGES", "REMOVING_SOURCE_BACKGROUND", "REMOVING_BACKGROUND"]:
+                                sku_ref.update({
+                                    "status": "FAILED",
+                                    "enrichment_message": "Session aborted by user request."
+                                })
+                        except Exception as sku_err:
+                            logger.error(f"Failed to abort sku {sku}: {sku_err}")
+                            
         except Exception as e:
             logger.error(f"Failed to abort batch {b_id}: {e}")
             
@@ -514,7 +445,7 @@ def fail_batch(batch_id: str, error_message: str):
                 sku_results[sku] = {"status": "FAILED", "error": error_message}
                 try: 
                     db.collection("staging_products").document(sku).update({
-                        "status": "ENRICHMENT_FAILED", 
+                        "status": "FAILED", 
                         "enrichment_message": error_message
                     })
                 except: pass
@@ -575,7 +506,26 @@ def check_and_process_batches() -> dict:
     logger.info(f"[Cron] Launching processing for QUEUED batch {next_batch_id}")
     
     # Process synchronously in this container.
-    process_studio_queue(next_batch_id)
-    summary["processed"] += 1
-    
+    # 3. Check for DELAYED_RETRY products that need resumption
+    # To avoid overwhelming, just get up to 8 of them
+    try:
+        delayed_docs = db.collection("staging_products").where(filter=firestore.FieldFilter("status", "==", "DELAYED_RETRY")).limit(8).get()
+        if delayed_docs:
+            batch = db.batch()
+            for doc_snap in delayed_docs:
+                data = doc_snap.to_dict() or {}
+                # Recover to the exact state it failed on, default to sourcing images if missing
+                target_state = data.get("retry_target_state", "SOURCING_IMAGES")
+                
+                batch.update(doc_snap.reference, {
+                    "status": target_state,
+                    "enrichment_message": f"Recovering from DELAYED_RETRY to {target_state}..."
+                })
+            batch.commit()
+            
+            logger.info(f"[Cron] Recovered {len(delayed_docs)} DELAYED_RETRY products directly to their target states.")
+            summary["recovered_retries"] = len(delayed_docs)
+    except Exception as retry_e:
+        logger.error(f"[Cron] Error checking delays: {retry_e}")
+
     return summary

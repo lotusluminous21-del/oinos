@@ -23,11 +23,11 @@ export function RelatedProducts({ id }: RelatedProductsProps) {
     if (relatedProducts.length === 0) return null
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-heading font-bold">Σχετικά Προϊόντα</h2>
+        <div className="space-y-8 mt-24">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-8 px-2">Frequently Bought Together</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {relatedProducts.map((product, index) => (
-                    <div key={product.id} className="h-full">
+                    <div key={product.id} className="h-full group">
                         <ProductCard product={product} index={index} />
                     </div>
                 ))}

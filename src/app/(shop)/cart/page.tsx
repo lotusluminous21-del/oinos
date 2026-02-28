@@ -13,7 +13,7 @@ export default function CartPage() {
             <div className="container mx-auto px-4 py-8 text-center">
                 <h1 className="text-3xl font-bold mb-4">Your Cart</h1>
                 <p className="mb-8">Your cart is empty.</p>
-                <Link href="/products" className="bg-black text-white px-6 py-3 rounded">
+                <Link href="/categories" className="bg-black text-white px-6 py-3 rounded">
                     Continue Shopping
                 </Link>
             </div>

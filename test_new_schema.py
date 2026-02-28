@@ -17,7 +17,7 @@ def test_schema_validation():
         "description": "Το HB BODY 951 είναι ένα εξαιρετικό ακρυλικό χρώμα...",
         "short_description": "Ακρυλικό χρώμα αυτοκινήτου",
         "tags": ["χρώμα", "ακρυλικό", "αυτοκίνητο"],
-        "category": "Σπρέι Βαφής",
+        "category": "Χρώματα Βάσης",
         "variants": [
             {
                 "sku_suffix": "-RED",

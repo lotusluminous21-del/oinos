@@ -231,3 +231,15 @@ export const getCollectionsQuery = `
     }
   }
 `;
+
+export const getProductTypesQuery = `
+  query getProductTypes {
+    products(first: 250) {
+      edges {
+        node {
+          productType
+        }
+      }
+    }
+  }
+`;

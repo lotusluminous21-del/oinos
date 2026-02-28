@@ -4,18 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-3.5 py-1 text-xs font-bold uppercase tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-white/20 bg-gradient-to-b from-primary/90 to-primary text-primary-foreground shadow-skeuo-raised",
         secondary:
-          "border-transparent bg-secondary/50 text-secondary-foreground hover:bg-secondary/40 backdrop-blur-sm",
+          "border-white/40 bg-white text-secondary-foreground shadow-skeuo-raised ring-1 ring-black/5",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        glass: "border-transparent bg-white/50 text-foreground hover:bg-white/70 backdrop-blur-md border border-white/20 shadow-sm",
+          "border-white/20 bg-gradient-to-b from-destructive/90 to-destructive text-destructive-foreground shadow-skeuo-raised",
+        outline: "text-foreground border-black/10 shadow-sm bg-white/50",
+        glass: "border-white/40 bg-white/60 text-foreground backdrop-blur-xl shadow-skeuo-raised ring-1 ring-black/5",
       },
     },
     defaultVariants: {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Source_Sans_3, Geist_Mono, Manrope } from "next/font/google";
+import { Nunito, Source_Sans_3, Geist_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 // Imports removed
 import { Providers } from "@/providers/Providers";
@@ -7,14 +7,15 @@ import { AuthProvider } from "@/lib/auth-context";
 // Imports removed
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { BottomNav } from "@/components/layout/bottom-nav";
 // Imports removed
 
 import { constructMetadata } from "@/lib/seo/metadata";
 import { constructOrganizationSchema } from "@/lib/seo/structured-data";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin", "cyrillic", "vietnamese"], // supports extensive characters including greek where available, though greek may require explicit load or fallback. Wait, actually we can just ask google fonts for it.
 });
 
 const sourceSans = Source_Sans_3({
@@ -43,11 +44,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${sourceSans.variable} ${geistMono.variable} ${manrope.variable} antialiased min-h-screen flex flex-col font-sans`}
+        className={`${nunito.variable} ${sourceSans.variable} ${geistMono.variable} ${manrope.variable} antialiased min-h-screen flex flex-col font-sans`}
       >
         <Providers>
           <AuthProvider>
             {children}
+            <BottomNav />
           </AuthProvider>
           <script
             type="application/ld+json"

@@ -40,16 +40,18 @@ class PaintTechnicalSpecs(BaseModel):
     spray_nozzle_type: Optional[str] = Field(description="Τύπος μπεκ (π.χ. Βεντάλια, Κυκλικό)", default=None)
 
 ProductCategory = Literal[
-    "Σπρέι Βαφής", 
-    "Χρώματα", 
-    "Ρητίνες", 
-    "Στόκοι", 
-    "Πινέλα & Ρολά", 
-    "Εργαλεία & Αξεσουάρ", 
-    "Διαλυτικά", 
-    "Καθαριστικά", 
+    "Προετοιμασία & Καθαρισμός",
+    "Αστάρια & Υποστρώματα",
+    "Χρώματα Βάσης",
+    "Βερνίκια & Φινιρίσματα",
+    "Σκληρυντές & Ενεργοποιητές",
+    "Στόκοι & Πλαστελίνες",
+    "Πινέλα & Εργαλεία",
+    "Διαλυτικά & Αραιωτικά",
+    "Αξεσουάρ",
     "Άλλο"
 ]
+
 
 class ProductEnrichmentData(BaseModel):
     title: str = Field(description="Semantic, neat, and brief title in Greek. MUST clearly display any identification/model numbers or primary brand identifiers.")
@@ -61,3 +63,14 @@ class ProductEnrichmentData(BaseModel):
     attributes: Dict[str, Any] = Field(description="Key-value product attributes", default={})
     technical_specs: Optional[PaintTechnicalSpecs] = Field(description="Technical specifications for paint/spray products, structured strictly in Greek", default=None)
     confidence_score: float = Field(description="Confidence score 0.0-1.0")
+
+class ExpertChatRequest(BaseModel):
+    message: str = Field(description="The user's message or question about a painting project.")
+    history: List[Dict[str, str]] = Field(description="Previous chat history", default=[])
+    context: Optional[Dict[str, Any]] = Field(description="Optional context like captured surface type, etc.", default=None)
+
+class ExpertChatResponse(BaseModel):
+    answer: str = Field(description="The expert's advice or final recommendation.")
+    suggested_products: List[Dict[str, Any]] = Field(description="List of specific Shopify products included in the advice.", default=[])
+    step_by_step_recipe: List[str] = Field(description="The multi-step process proposed by the expert.", default=[])
+    safety_warnings: List[str] = Field(description="Critical safety warnings for the identified products.", default=[])

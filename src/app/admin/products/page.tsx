@@ -4,9 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { collection, onSnapshot, query, orderBy, doc, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CatalogueUploader } from "@/components/admin/catalogue-uploader";
-import { publishProductAction } from "@/app/actions/publish-product";
-import {
+import { publishProductAction } from "@/app/actions/publish-product"; import {
     Search,
     Globe,
     ExternalLink,
@@ -57,7 +55,8 @@ interface StagingProduct {
     ai_data?: {
         title?: string; // Greek title from new schema
         description?: string; // Greek description from new schema
-        images?: Array<{ url: string }>;
+        images?: Array<{ url: string; suffix?: string }>;
+        variant_images?: Record<string, Array<{ url: string }>>;
         generated_images?: Record<string, string>;
         selected_images?: Record<string, string>;
     };
@@ -72,9 +71,6 @@ function StagingAreaContent() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
     const [selectedSkus, setSelectedSkus] = useState<Set<string>>(new Set());
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [showUploader, setShowUploader] = useState(false);
-
     // Listen to ALL staging products
     useEffect(() => {
         if (!db) return;
@@ -105,97 +101,7 @@ function StagingAreaContent() {
         setSelectedSkus(next);
     };
 
-    const handleBulkDelete = async () => {
-        if (selectedSkus.size === 0) return;
-        setIsProcessing(true);
-        try {
-            const batch = writeBatch(db!);
-            selectedSkus.forEach(sku => {
-                batch.delete(doc(db!, "staging_products", sku));
-            });
-            await batch.commit();
-            setSelectedSkus(new Set());
-        } catch (e) {
-            console.error(e);
-            alert("Bulk delete failed");
-        } finally {
-            setIsProcessing(false);
-        }
-    };
 
-    const handleBulkPublish = async () => {
-        if (selectedSkus.size === 0) return;
-        setIsProcessing(true);
-        let successCount = 0;
-        let failCount = 0;
-
-        try {
-            for (const sku of Array.from(selectedSkus)) {
-                const product = products.find(p => p.sku === sku);
-                if (!product) continue;
-
-                const sanitizedProduct = JSON.parse(JSON.stringify(product));
-                const result = await publishProductAction(sku, sanitizedProduct);
-                if (result.success) {
-                    const docRef = doc(db!, "staging_products", sku);
-                    await writeBatch(db!).update(docRef, {
-                        shopify_product_id: result.shopifyId,
-                        shopify_handle: result.handle,
-                        published_at: new Date().toISOString(),
-                        status: 'APPROVED'
-                    }).commit();
-                    successCount++;
-                } else {
-                    failCount++;
-                }
-            }
-            alert(`Publish complete. Success: ${successCount}, Failed: ${failCount}`);
-            setSelectedSkus(new Set());
-        } catch (e) {
-            console.error(e);
-            alert("Bulk publish encountered an error.");
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
-    const ReadinessTracker = ({ product }: { product: StagingProduct }) => {
-        const hasMetadata = product.status !== 'IMPORTED' && product.status !== 'PENDING_METADATA';
-        const hasImages = !!product.ai_data?.selected_images?.base;
-        const hasStudio = !!product.ai_data?.generated_images?.base;
-        const isApproved = product.status === 'APPROVED' || !!product.shopify_product_id;
-
-        return (
-            <div className="flex items-center gap-1.5">
-                <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                        <TooltipTrigger asChild>
-                            <div className={cn("w-2 h-2 rounded-sm", hasMetadata ? "bg-zinc-800" : "bg-zinc-200 border border-zinc-300")} />
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Data Fetched</TooltipContent>
-                    </Tooltip>
-                    <Tooltip delayDuration={0}>
-                        <TooltipTrigger asChild>
-                            <div className={cn("w-2 h-2 rounded-sm", hasImages ? "bg-zinc-800" : "bg-zinc-200 border border-zinc-300")} />
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Images Sourced</TooltipContent>
-                    </Tooltip>
-                    <Tooltip delayDuration={0}>
-                        <TooltipTrigger asChild>
-                            <div className={cn("w-2 h-2 rounded-sm", hasStudio ? "bg-zinc-800" : "bg-zinc-200 border border-zinc-300")} />
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Studio Complete</TooltipContent>
-                    </Tooltip>
-                    <Tooltip delayDuration={0}>
-                        <TooltipTrigger asChild>
-                            <div className={cn("w-2 h-2 rounded-sm", isApproved ? "bg-green-600" : "bg-zinc-200 border border-zinc-300")} />
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Ready for Sync</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </div>
-        );
-    };
 
     const filteredProducts = products.filter(p =>
         p.pylon_data.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -203,7 +109,7 @@ function StagingAreaContent() {
         p.ai_data?.title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const selectMacro = (type: 'all' | 'ready' | 'issues' | 'none') => {
+    const selectMacro = (type: 'all' | 'none') => {
         if (type === 'none') {
             setSelectedSkus(new Set());
             return;
@@ -211,8 +117,6 @@ function StagingAreaContent() {
         const next = new Set<string>();
         filteredProducts.forEach(p => {
             if (type === 'all') next.add(p.sku);
-            if (type === 'ready' && (p.status === 'APPROVED' || p.shopify_product_id)) next.add(p.sku);
-            if (type === 'issues' && p.status === 'ENRICHMENT_FAILED') next.add(p.sku);
         });
         setSelectedSkus(next);
     };
@@ -226,13 +130,6 @@ function StagingAreaContent() {
                     <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">Product Catalogue</h1>
                     <div className="h-4 w-px bg-zinc-300 mx-2" />
 
-                    {/* Filter macros */}
-                    <div className="flex rounded-md bg-zinc-100 p-0.5">
-                        <Button variant="ghost" size="sm" onClick={() => selectMacro('all')} className="h-7 text-xs px-3 focus:bg-white focus:shadow-sm">All</Button>
-                        <Button variant="ghost" size="sm" onClick={() => selectMacro('ready')} className="h-7 text-xs px-3 text-green-700 focus:bg-white focus:shadow-sm">Ready</Button>
-                        <Button variant="ghost" size="sm" onClick={() => selectMacro('issues')} className="h-7 text-xs px-3 text-red-600 focus:bg-white focus:shadow-sm">Issues</Button>
-                        <Button variant="ghost" size="sm" onClick={() => selectMacro('none')} className="h-7 text-xs px-3 text-zinc-500 focus:bg-white focus:shadow-sm">Clear</Button>
-                    </div>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -245,24 +142,8 @@ function StagingAreaContent() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Button
-                        size="sm"
-                        variant={showUploader ? "secondary" : "default"}
-                        onClick={() => setShowUploader(!showUploader)}
-                        className="h-8 text-xs font-medium gap-2"
-                    >
-                        {showUploader ? <X className="w-3.5 h-3.5" /> : <UploadCloud className="w-3.5 h-3.5" />}
-                        {showUploader ? "Close Import" : "Import CSV"}
-                    </Button>
                 </div>
             </div>
-
-            {/* Uploader Dropdown */}
-            {showUploader && (
-                <div className="p-4 border-b border-zinc-200 bg-white">
-                    <CatalogueUploader />
-                </div>
-            )}
 
             {/* High-Density Data Table */}
             <div className="flex-1 overflow-auto">
@@ -280,7 +161,6 @@ function StagingAreaContent() {
                             <th className="w-16 p-3 font-semibold text-zinc-500 text-xs">Image</th>
                             <th className="w-32 p-3 font-semibold text-zinc-500 text-xs">SKU</th>
                             <th className="p-3 font-semibold text-zinc-500 text-xs">Title & Original Name</th>
-                            <th className="w-32 p-3 font-semibold text-zinc-500 text-xs">Readiness</th>
                             <th className="w-24 p-3 font-semibold text-zinc-500 text-xs text-right">Price</th>
                             <th className="w-24 p-3 font-semibold text-zinc-500 text-xs text-center">Action</th>
                         </tr>
@@ -304,7 +184,8 @@ function StagingAreaContent() {
                             filteredProducts.map((p) => {
                                 const isSelected = selectedSkus.has(p.sku);
                                 const isPublished = !!p.shopify_product_id;
-                                const imgUrl = p.ai_data?.generated_images?.base || p.ai_data?.selected_images?.base || p.ai_data?.images?.[0]?.url;
+                                const baseStudioImg = p.ai_data?.images?.find((img) => img.suffix === 'base' || img.suffix?.toLowerCase() === 'base' || !img.suffix)?.url;
+                                const imgUrl = p.ai_data?.generated_images?.base || p.ai_data?.selected_images?.base || baseStudioImg || p.ai_data?.images?.[0]?.url || p.ai_data?.variant_images?.base?.[0]?.url;
 
                                 return (
                                     <tr
@@ -350,9 +231,6 @@ function StagingAreaContent() {
                                                 {p.pylon_data.name}
                                             </div>
                                         </td>
-                                        <td className="p-3 cursor-pointer">
-                                            <ReadinessTracker product={p} />
-                                        </td>
                                         <td className="p-3 text-right text-xs text-zinc-600 font-medium cursor-pointer">
                                             €{(p.pylon_data.price_retail || 0).toFixed(2)}
                                         </td>
@@ -386,48 +264,9 @@ function StagingAreaContent() {
                             variant="secondary"
                             size="sm"
                             className="h-8 bg-zinc-800 text-zinc-100 hover:bg-zinc-700 hover:text-white text-xs border border-zinc-700 gap-2"
-                            onClick={() => router.push(`/admin/products/wizard?skus=${Array.from(selectedSkus).join(",")}`)}
-                            disabled={isProcessing}
+                            onClick={() => router.push(`/admin/lab?skus=${Array.from(selectedSkus).join(",")}`)}
                         >
-                            <Wand2 className="w-3.5 h-3.5" /> Automate Workflow
-                        </Button>
-
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button
-                                    size="sm"
-                                    className="h-8 bg-white text-zinc-900 hover:bg-zinc-200 text-xs font-semibold gap-2 shadow-none"
-                                    disabled={isProcessing}
-                                >
-                                    <Globe className="w-3.5 h-3.5" /> Sync to Shopify
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Deploy Batch to Shopify?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        You are about to sync {selectedSkus.size} products directly to your live catalogue. This cannot be easily undone.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleBulkPublish} className="bg-zinc-900 text-white hover:bg-zinc-800">
-                                        Confirm Deployment
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-
-                        <div className="w-px h-6 bg-zinc-700 mx-1" />
-
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-md"
-                            onClick={handleBulkDelete}
-                            disabled={isProcessing}
-                        >
-                            <Trash2 className="w-4 h-4" />
+                            <Settings className="w-3.5 h-3.5" /> Manage
                         </Button>
                     </div>
                 </div>

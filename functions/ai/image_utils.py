@@ -74,3 +74,99 @@ def normalize_product_image(image_bytes: bytes, target_size: int = 1024, padding
     except Exception as e:
         logger.error(f"Failed to normalize image: {e}")
         return image_bytes
+
+def _calculate_center_of_mass(alpha_channel: Image.Image) -> tuple[int, int]:
+    """Calculate the visual center of mass of an alpha channel based on pixel density."""
+    pixels = alpha_channel.load()
+    width, height = alpha_channel.size
+    
+    x_sum = 0
+    y_sum = 0
+    total_alpha = 0
+    
+    for x in range(width):
+        for y in range(height):
+            alpha = pixels[x, y]
+            if alpha > 0:
+                x_sum += x * alpha
+                y_sum += y * alpha
+                total_alpha += alpha
+                
+    if total_alpha == 0:
+        return width // 2, height // 2
+        
+    return int(x_sum / total_alpha), int(y_sum / total_alpha)
+
+def normalize_studio_png(image_bytes: bytes, target_size: int = 1024, target_area_ratio: float = 0.35) -> bytes:
+    """
+    Normalizes a generated transparent PNG (Background Removed) by calculating its total Visual Weight
+    (active opaque pixels) and scaling it to occupy a precise percentage of the canvas (target_area_ratio).
+    It then perfectly centers the product based on its visual Center of Mass, preventing optical imbalances.
+    """
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+            
+        alpha = img.getchannel('A')
+        bbox = alpha.getbbox()
+        
+        if not bbox:
+            logger.warning("No opaque pixels found in PNG. Returning original.")
+            return image_bytes
+            
+        # 1. Crop to geometric bounding box first to optimize scaling performance
+        product = img.crop(bbox)
+        p_alpha = product.getchannel('A')
+        
+        # 2. Calculate true active pixel area (Visual Weight)
+        histogram = p_alpha.histogram()
+        # Sum of pixels with alpha > 0. (Index 0 is purely transparent)
+        active_pixels = sum(histogram[1:])
+        
+        if active_pixels <= 0: return image_bytes
+        
+        # 3. Scale based on Visual Weight target
+        target_area = (target_size * target_size) * target_area_ratio
+        
+        # Area scale factor is square root of the ratio
+        import math
+        scale = math.sqrt(target_area / active_pixels)
+        
+        new_width = int(product.width * scale)
+        new_height = int(product.height * scale)
+        
+        # Safety bound: ensure the product doesn't exceed 95% of the total canvas size geometrically
+        max_dim = target_size * 0.95
+        if new_width > max_dim or new_height > max_dim:
+            geometric_scale = max_dim / max(new_width, new_height)
+            new_width = int(new_width * geometric_scale)
+            new_height = int(new_height * geometric_scale)
+            
+        product = product.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # 4. Calculate Center of Mass of the freshly scaled product
+        scaled_alpha = product.getchannel('A')
+        com_x, com_y = _calculate_center_of_mass(scaled_alpha)
+        
+        # 5. Create final transparent canvas
+        canvas = Image.new('RGBA', (target_size, target_size), (0, 0, 0, 0))
+        
+        # 6. Paste aligned by Center of Mass (CoM maps to Canvas Center)
+        canvas_center_x = target_size // 2
+        canvas_center_y = target_size // 2
+        
+        paste_x = canvas_center_x - com_x
+        paste_y = canvas_center_y - com_y
+        
+        canvas.paste(product, (paste_x, paste_y), mask=product)
+        
+        output = io.BytesIO()
+        # Save as PNG to preserve transparency
+        canvas.save(output, format='PNG', optimize=True)
+        return output.getvalue()
+        
+    except Exception as e:
+        logger.error(f"Failed to deeply normalize PNG: {e}", exc_info=True)
+        return image_bytes

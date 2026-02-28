@@ -1,0 +1,216 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --primary: 168 76% 42%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 168 76% 42%;
+    --accent-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --ring: 168 76% 42%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Hide hydration errors */
+[data-hydration-error] {
+  display: none !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 3px;
+}
+
+/* Gradient backgrounds */
+.gradient-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(168 76% 25% / 0.3) 0%,
+    hsl(262 83% 30% / 0.3) 100%
+  );
+}
+
+.gradient-teal-purple {
+  background: linear-gradient(
+    135deg,
+    hsl(168 76% 42%) 0%,
+    hsl(262 83% 58%) 100%
+  );
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+}
+
+/* Fluid shapes for hero */
+.fluid-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.6;
+  animation: float 8s ease-in-out infinite;
+}
+
+.fluid-shape-1 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.fluid-shape-2 {
+  width: 350px;
+  height: 350px;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  bottom: -100px;
+  right: -100px;
+  animation-delay: -4s;
+}
+
+.fluid-shape-3 {
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  top: 50%;
+  right: 20%;
+  animation-delay: -2s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(20px, -20px) scale(1.05);
+  }
+  50% {
+    transform: translate(-10px, 10px) scale(0.95);
+  }
+  75% {
+    transform: translate(-20px, -10px) scale(1.02);
+  }
+}
+
+/* Safe area for bottom nav */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* AI typing indicator */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: hsl(var(--primary));
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Confidence indicators */
+.confidence-high {
+  color: #22c55e;
+}
+
+.confidence-medium {
+  color: #eab308;
+}
+
+.confidence-low {
+  color: #f97316;
+}
+
+/* Option cards */
+.option-card {
+  @apply glass-card p-4 cursor-pointer transition-all duration-200;
+}
+
+.option-card:hover {
+  @apply border-teal-500/50;
+  transform: translateY(-2px);
+}
+
+.option-card.selected {
+  @apply border-teal-500 bg-teal-500/10;
+}
+
+/* Product card hover */
+.product-card {
+  @apply glass-card overflow-hidden transition-all duration-200;
+}
+
+.product-card:hover {
+  @apply border-teal-500/30;
+  transform: translateY(-4px);
+}
+
+/* No text selection on interactive elements */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}

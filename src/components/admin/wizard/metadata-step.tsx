@@ -79,7 +79,7 @@ export function MetadataStep({ products, onStartScan, onRetry, onComplete }: Met
 
                         if (pp.ai_data) {
                             Object.entries(pp.ai_data).forEach(([key, value]) => {
-                                if (value && (!newAiData[key] || (Array.isArray(value) && value.length > 0 && (!newAiData[key] || newAiData[key].length === 0)))) {
+                                if (value && (!newAiData[key] || newAiData[key] === "Σπρέι Βαφής" || (Array.isArray(value) && value.length > 0 && (!newAiData[key] || newAiData[key].length === 0)))) {
                                     newAiData[key] = value;
                                     hasChanges = true;
                                 }
@@ -246,11 +246,27 @@ export function MetadataStep({ products, onStartScan, onRetry, onComplete }: Met
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold text-zinc-900 uppercase">Category</Label>
-                                <Input
-                                    className="text-sm bg-white border-zinc-200 rounded-md h-9"
+                                <select
+                                    className="w-full text-sm bg-white border-zinc-200 rounded-md h-9 px-2 focus:ring-1 focus:ring-zinc-400 outline-none"
                                     value={activeProduct.ai_data?.category || ""}
                                     onChange={(e) => updateProduct(activeProduct.sku, { category: e.target.value })}
-                                />
+                                >
+                                    <option value="">Επιλέξτε Κατηγορία</option>
+                                    {[
+                                        "Προετοιμασία & Καθαρισμός",
+                                        "Αστάρια & Υποστρώματα",
+                                        "Χρώματα Βάσης",
+                                        "Βερνίκια & Φινιρίσματα",
+                                        "Σκληρυντές & Ενεργοποιητές",
+                                        "Στόκοι & Πλαστελίνες",
+                                        "Πινέλα & Εργαλεία",
+                                        "Διαλυτικά & Αραιωτικά",
+                                        "Αξεσουάρ",
+                                        "Άλλο"
+                                    ].map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     </div>

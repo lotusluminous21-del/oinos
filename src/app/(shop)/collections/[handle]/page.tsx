@@ -21,7 +21,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ han
                 {collection.products.edges.map(({ node: product }) => (
                     <Link
                         key={product.id}
-                        href={`/products/${product.handle}`}
+                        href={`/product/${product.handle}`}
                         className="group block"
                     >
                         <div className="aspect-square relative overflow-hidden bg-neutral-100 rounded-md mb-4">
