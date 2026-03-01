@@ -114,6 +114,16 @@ def expert_chat(req: https_fn.CallableRequest) -> dict:
         print(f"Error in expert_chat wrapper: {e}")
         return {"error": str(e)}
 
+# --- 7b. Expert Paint Advisor V2 (Multi-Agent, Separated Concerns) ---
+@https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_512)
+def expert_chat_v2(req: https_fn.CallableRequest) -> dict:
+    try:
+        from expert_v2.main import expert_chat_v2 as handler
+        return handler(req)
+    except Exception as e:
+        print(f"Error in expert_chat_v2 wrapper: {e}")
+        return {"error": str(e)}
+
 @https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_256)
 def save_expert_project(req: https_fn.CallableRequest) -> dict:
     try:

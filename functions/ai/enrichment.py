@@ -305,7 +305,7 @@ def handle_metadata_phase(product_ref, data, db, force_metadata=False):
             - Δημιούργησε έναν σημασιολογικό (semantic), καθαρό και συνοπτικό τίτλο (title). ΠΡΕΠΕΙ να περιέχει εμφανώς κωδικούς μοντέλων, νούμερα ταυτοποίησης ή την κύρια μάρκα, ώστε να ξεχωρίζει από παρόμοια προϊόντα.
             - Γράψε μια περιγραφή (description) που είναι διαβαστερή, φιλική προς τον πελάτη και συνοψίζει τα τεχνικά χαρακτηριστικά τονίζοντας την κύρια χρήση και τα οφέλη.
             - Σύντομη περιγραφή (short_description) για συλλογές.
-            - ΚΑΤΗΓΟΡΙΑ: Επίλεξε ΑΥΣΤΗΡΑ μία από τις παρακάτω κατηγορίες: "Σπρέι Βαφής", "Χρώματα", "Ρητίνες", "Στόκοι", "Πινέλα & Ρολά", "Εργαλεία & Αξεσουάρ", "Διαλυτικά", "Καθαριστικά", "Άλλο".
+            - ΚΑΤΗΓΟΡΙΑ: Επίλεξε ΑΥΣΤΗΡΑ μία από τις παρακάτω κατηγορίες: "Προετοιμασία & Καθαρισμός", "Αστάρια & Υποστρώματα", "Χρώματα Βάσης", "Βερνίκια & Φινιρίσματα", "Σκληρυντές & Ενεργοποιητές", "Στόκοι & Πλαστελίνες", "Πινέλα & Εργαλεία", "Διαλυτικά & Αραιωτικά", "Αξεσουάρ", "Άλλο".
             - DYNAMIC VARIANTS: Αναζήτησε άξονες παραλλαγών στο κείμενο (π.χ. διαθέσιμα χρώματα στο χρωματολόγιο, συσκευασίες/όγκοι (400ml, 1L), μεγέθη, διαμέτρους μπεκ). Δημιούργησε δυναμικά Options (π.χ. option1_name="Χρώμα", option1_value="Λευκό", option2_name="Όγκος / Συσκευασία", option2_value="400ml") και χτίσε τον πίνακα `variants`.
             - TECHNICAL SPECS: Κατηγοριοποίησε αυστηρά το προϊόν βάσει της χημικής του βάσης (Ακρυλικό, Σμάλτο κλπ), το στάδιο της εφαρμογής (Αστάρι, Βερνίκι κλπ), κατάλληλες επιφάνειες και φινίρισμα. 
             - Βαθύτερα Τεχνικά Χαρακτηριστικά (όπου υπάρχουν): Ειδικό βάρος, πάχος στεγνού φιλμ, αναλογία μίξης (για 2K), voc.
@@ -418,34 +418,38 @@ def handle_nano_banana_phase(doc_ref, sku, name, ai_data):
         color_instruction += finish_instruction
     
     decorative_effect = "mild decorative crown of high-viscosity glossy liquid splashes"
-    if category == "Σπρέι Βαφής":
+    is_spray = "Σπρέι" in technical_specs.get("application_method", []) or "Σπρέι" in name or "Spray" in name
+    
+    if is_spray:
         decorative_effect = "mild decorative crown of high-velocity, fine aerosol-like mist and dynamic glossy droplets"
-    elif category == "Χρώματα":
+    elif category == "Χρώματα Βάσης":
         decorative_effect = "mild decorative crown of high-viscosity, thick liquid paint splashes and bold waves"
-    elif category == "Ρητίνες":
-        decorative_effect = "mild decorative crown of smooth, crystalline, semi-transparent liquid resin waves"
-    elif category == "Στόκοι":
+    elif category == "Βερνίκια & Φινιρίσματα":
+        decorative_effect = "mild decorative crown of smooth, crystalline, semi-transparent liquid gloss waves"
+    elif category == "Στόκοι & Πλαστελίνες":
         decorative_effect = "subtle, thick matte textured material crests and smooth paste-like ripples"
-    elif category == "Πινέλα & Ρολά":
+    elif category == "Πινέλα & Εργαλεία":
         decorative_effect = "dynamic, sweeping artistic paint brush-strokes playfully wrapping around the base"
-    elif category == "Εργαλεία & Αξεσουάρ":
+    elif category == "Αξεσουάρ":
         decorative_effect = "subtle, dynamic ambient light-sweeps and minimal high-viscosity droplet accents"
-    elif category == "Διαλυτικά":
+    elif category == "Διαλυτικά & Αραιωτικά":
         decorative_effect = "mild decorative crown of crisp, clear, volatile liquid ripples and sharp translucent splashes"
-    elif category == "Καθαριστικά":
+    elif category == "Προετοιμασία & Καθαρισμός":
         decorative_effect = "gentle decorative crown of fresh, sparkling micro-bubbles and clear fluid sweeps"
+    elif category == "Σκληρυντές & Ενεργοποιητές":
+        decorative_effect = "elegant arrangement of sparkling clear liquid ribbons and sharp prismatic light-sweeps"
 
     sizing_instruction = "The product must be tightly center-framed, occupying exactly 80% of the vertical canvas height."
     
     NANO_PROMPTS = {
         "clean": f"""Using the provided image ONLY as a reference for the product's labels, colors, and shape, generate a BRAND NEW photography with these exact rules:
-1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch, resting on an **invisible, seamless pure white studio floor**.
-2.  **NEGATIVE INSTRUCTIONS**: DO NOT inherit the tilt, depth of field, or shadow placement from the original photo. **Wipe out all original specular highlights.** No visible pedestals or platforms.
+1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch, against an **absolutely flat, seamless, solid matte chroma key green (#00FF00) backdrop**.
+2.  **NEGATIVE INSTRUCTIONS**: DO NOT include a horizon line, floor texture, visible surface transition, or depth. **Completely eliminate all floor reflections and contact shadows.** The green must be a solid, non-gradient color without lighting falloff.
 3.  **Composition & Angle**: Show the product from a straight-on, front-facing eye-level angle. Center it vertically/horizontally. {sizing_instruction} Full visibility (not cut off).
-4.  **Lighting & style**: Use soft, even, high-key studio lighting. **The floor and background must be identical pure white (#FFFFFF), with only a realistic soft shadow at the base to indicate the surface.** Generate new, clean geometric highlights from studio softboxes on the product.
-5.  **Subject Isolation**: EXTRACT A SINGLE ITEM. If the source shows multiple items, generate ONLY ONE single item. Do not show a group.
-6.  **Identity Accuracy**: PRESERVE THE IDENTITY (text, labels, logos, colors). Ensure all text on the label is legible and identical to the source, but allow the product's physical orientation to be corrected to the straight-on angle defined in Point 3.
-7.  **Background**: Pure white (#FFFFFF) background with NO texture.""",
+4.  **Background & Lighting**: The entire canvas background must be a **uniform, flat, and non-reflective #00FF00 green** (professional movie-style green screen). Use even studio lighting that does not cast any shadow on the background.
+5.  **Subject Isolation**: EXTRACT A SINGLE ITEM. If the source shows multiple items, generate ONLY ONE single item.
+6.  **Identity Accuracy**: PRESERVE THE IDENTITY (text, labels, logos, colors). Ensure all text on the label is legible and identical to the source.
+7.  **Surface**: The product should appear to float slightly or sit on a perfectly invisible surface that does not interact visually with the green background.""",
 
         "realistic": f"""Using the provided image ONLY as a reference for the product's labels, colors, and shape, generate a BRAND NEW photography with these exact rules:
 1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch.
@@ -456,20 +460,19 @@ def handle_nano_banana_phase(doc_ref, sku, name, ai_data):
 6.  **Aesthetic**: Authentic, premium yet practical workshop vibe.""",
 
         "modern": f"""Using the provided image ONLY as a reference for the product's labels, colors, and shape, generate a BRAND NEW photography with these exact rules:
-1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch, resting on an **invisible, seamless pure white studio floor**.
-2.  **NEGATIVE INSTRUCTIONS**: DO NOT follow the orientation or perspective of the original image. **Completely discard original lighting and reflections.** No visible pedestals or platforms.
+1.  **COMMAND**: Ignore the camera angle, perspective, and lighting of the source image. Re-render the product from scratch, against an **absolutely flat, seamless, solid matte chroma key green (#00FF00) backdrop**.
+2.  **NEGATIVE INSTRUCTIONS**: DO NOT include a horizon line, visible floor, or any depth in the background. **Completely eliminate all floor reflections.** No visible shadows cast on the green background. The background must not have texture or light gradients.
 3.  **Composition & Camera**: Straight-on, front-facing eye-level angle. Center vertically/horizontally. {sizing_instruction}
-4.  **Vibrant Lighting**: Professional multi-point studio lighting with subtle rim lighting. **The product surface must actively capture sharp reflections from the surrounding visual elements.**
+4.  **Vibrant Lighting**: Professional multi-point studio lighting with subtle rim lighting. **The product surface must actively capture sharp reflections from the surrounding visual elements, but NOT from the green background itself.**
 5.  **Explosive Visuals**: SURROUND the product with a {decorative_effect}. {color_instruction}
-6.  **Identity Accuracy**: Extract the main product unit. PRESERVE THE BRANDING AND TEXT Identity, but re-render the physical position to be straight-on.
-7.  **Background**: Pure white (#FFFFFF) background; the floor and background are the same color, differentiated only by the product's soft contact shadow and the decorative accents.
-8.  **Aesthetic**: Tech-premium, sharp focus, high contrast with vibrant decorative accents."""
+6.  **Identity Accuracy**: Extract the main product unit. PRESERVE THE BRANDING AND TEXT Identity.
+7.  **Background**: Solid, uniform chroma key green (#00FF00) covering the entire background area with zero texture or shading."""
     }
 
     IMAGEN_PROMPTS = {
-        "clean": f"Ultra-sharp professional studio product photography. The product is center-framed and resting on a seamless, invisible pure white studio floor in a high-key, pure white setting. {sizing_instruction} Lighting: **Recalibrated** clean 5500K daylight spectrum softbox lighting; the floor and background merge perfectly into #FFFFFF, with only a **soft, realistic ambient occlusion shadow at the base**. No pedestals. New geometric highlights override the original image lighting.",
+        "clean": f"Professional studio product photography. The product is center-framed. **Background**: Absolutely flat, solid, non-reflective chroma key green (#00FF00) covering the entire frame. **No floor, no shadows, no reflections, and no horizon lines.** The product appears to be perfectly isolated against a uniform green void. {sizing_instruction}",
         "realistic": f"Professional cinematic product photography. The product sits on a high-texture, dark-grey polished concrete surface with realistic micro-reflections. {sizing_instruction} Environment: A minimalist, high-end design workshop with soft, volumetric natural daylight streaming from a side window. Lighting: Warm 4000K sunlight with subtle lens bloom and soft, elongated natural shadows. Camera: 50mm f/1.8 depth of field, sharp focus on the product label with a creamy background blur.",
-        "modern": f"High-end commercial avant-garde photography. The product rests on an invisible white studio floor and is surrounded by a {decorative_effect}. {color_instruction} {sizing_instruction} Lighting: **Environment-driven** tech-premium setup; the floor and background merge into pure #FFFFFF. The product surface must **reflect the colors from the surrounding elements**, replacing original specular highlights. Shadow: Soft, subtle contact shadow at the base."
+        "modern": f"High-end commercial photography. The product is surrounded by a {decorative_effect}. {color_instruction} {sizing_instruction} **Background**: Solid, uniform, flat chroma key green (#00FF00) screen with **zero reflections, zero shadows, and no visible floor/wall junction.** Lighting: Environment-driven tech-premium setup, ensuring the background remains a solid un-lit color."
     }
     
     # Identify unique variant colors that need dedicated images

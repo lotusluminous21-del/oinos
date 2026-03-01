@@ -2,7 +2,24 @@
 
 // Must match functions/expert/schema.py exactly
 
-export type ProjectDomain = 'automotive' | 'marine' | 'structural' | 'home' | 'industrial' | 'unknown';
+export type ProjectDomain = 'automotive' | 'marine' | 'structural' | 'industrial' | 'woodworking' | 'general' | 'home' | 'unknown';
+
+export type ProjectType =
+    | 'damage-repair'
+    | 'new-parts-painting'
+    | 'restoration'
+    | 'protective-coatings'
+    | 'custom-finishes'
+    | 'marine-antifouling'
+    | 'marine-gelcoat-repair'
+    | 'marine-topside-paint'
+    | 'marine-wood-varnish'
+    | 'structural-masonry-protection'
+    | 'structural-wood-staining'
+    | 'structural-metal-gate-fence'
+    | 'structural-interior-wall'
+    | 'general-painting'
+    | 'unknown';
 
 export type ConfidenceLevel = 'none' | 'low' | 'medium' | 'high';
 
@@ -29,7 +46,7 @@ export interface KnowledgeGaps {
 
 export interface KnowledgeState {
     domain: ProjectDomain;
-    project_type: string | null;
+    project_type: ProjectType;
     confirmed_facts: Partial<Taxonomies> & Record<string, any>;
     inferred_facts: Record<string, InferredValue<any>>;
     gaps: KnowledgeGaps;
@@ -37,17 +54,25 @@ export interface KnowledgeState {
 
 export interface ExpertQuestion {
     id: string;
+    field: string;
     text: string;
-    type: 'single-select' | 'multi-select' | 'text';
-    options?: { id: string; label: string; description?: string }[];
+    type: 'single-select' | 'multi-select' | 'text' | 'color-picker';
+    options?: {
+        id: string;
+        label: string;
+        description?: string;
+        icon?: string;
+        value: any;
+    }[];
     help_text?: string;
+    required?: boolean;
 }
 
 export interface SolutionStep {
     order: number;
     title: string;
     description: string;
-    products: string[]; // Shopify product handles
+    product_handles: string[]; // Shopify product handles (matches Python schema)
     tips: string[];
     warnings?: string[];
 }

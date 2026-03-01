@@ -316,8 +316,7 @@ class MetadataAgent:
             6. DYNAMIC VARIANTS: You MUST obey the following strict rules for variants based on the product category:
                - Categories 'Πινέλα & Εργαλεία', 'Αξεσουάρ': NO variants allowed, OR only 'Μέγεθος/Διάσταση' (Size). NEVER generate Color variants.
                - Categories 'Διαλυτικά & Αραιωτικά', 'Προετοιμασία & Καθαρισμός': ONLY allowable variant is 'Χωρητικότητα/Βάρος' (Volume/Weight). NEVER generate Color variants.
-               - Category 'Σπρέι Βαφής': Primarily ONLY 'Χρώμα' (Color) variants. (Deprecated: Map to functional category instead)
-               - Categories 'Αστάρια & Υποστρώματα', 'Χρώματα Βάσης', 'Βερνίκια & Φινιρίσματα', 'Στόκοι & Πλαστελίνες': Can have both 'Χρώμα' and 'Χωρητικότητα/Βάρος'.
+               - Categories 'Αστάρια & Υποστρώματα', 'Χρώματα Βάσης', 'Βερνίκια & Φινιρίσματα', 'Στόκοι & Πλαστελίνες', 'Σκληρυντές & Ενεργοποιητές': Can have both 'Χρώμα' and 'Χωρητικότητα/Βάρος'.
                AXIS NOMENCLATURE: `option1_name` MUST ALWAYS be "Χρώμα". `option2_name` MUST ALWAYS be "Χωρητικότητα/Βάρος" or "Μέγεθος/Διάσταση". DO NOT invent new axis names.
                VARIANT VALUE PURITY: Each variant value must contain ONLY the value for its axis. For example, a color variant value should be ONLY the color (e.g. "Μπρονζέ"), NOT "Μπρονζέ Ματ" (the finish belongs in technical_specs, not in the variant value).
                CROSS-AXIS SPLITTING (CRITICAL): If a product comes in BOTH multiple colors AND multiple sizes/volumes, you MUST create a cross-product matrix.

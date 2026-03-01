@@ -4,11 +4,6 @@ import "./globals.css";
 // Imports removed
 import { Providers } from "@/providers/Providers";
 import { AuthProvider } from "@/lib/auth-context";
-// Imports removed
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
-import { BottomNav } from "@/components/layout/bottom-nav";
-// Imports removed
 
 import { constructMetadata } from "@/lib/seo/metadata";
 import { constructOrganizationSchema } from "@/lib/seo/structured-data";
@@ -44,12 +39,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${nunito.variable} ${sourceSans.variable} ${geistMono.variable} ${manrope.variable} antialiased min-h-screen flex flex-col font-sans`}
+        className={`${nunito.variable} ${sourceSans.variable} ${geistMono.variable} ${manrope.variable} antialiased min-h-screen flex flex-col font-sans overflow-x-hidden w-full relative`}
       >
         <Providers>
           <AuthProvider>
             {children}
-            <BottomNav />
+            {/* Skeumorphic app removes global bottom nav for shop layout */}
           </AuthProvider>
           <script
             type="application/ld+json"

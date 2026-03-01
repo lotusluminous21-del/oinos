@@ -9,6 +9,8 @@ import { doc, updateDoc, deleteField, deleteDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import ImageLightbox from "./ImageLightbox";
+import { getCategoryImage } from "@/lib/categories";
+import NextImage from "next/image";
 
 export default function PipelineDrawer({
     product,
@@ -430,27 +432,37 @@ export default function PipelineDrawer({
                                                                 Category
                                                                 {isFlagged('category') && <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />}
                                                             </label>
-                                                            <select
-                                                                value={aiCategory}
-                                                                onChange={e => setAiCategory(e.target.value)}
-                                                                className="flex h-8 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-1 text-xs ring-offset-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
-                                                            >
-                                                                <option value="">Επιλέξτε Κατηγορία</option>
-                                                                {[
-                                                                    "Προετοιμασία & Καθαρισμός",
-                                                                    "Αστάρια & Υποστρώματα",
-                                                                    "Χρώματα Βάσης",
-                                                                    "Βερνίκια & Φινιρίσματα",
-                                                                    "Σκληρυντές & Ενεργοποιητές",
-                                                                    "Στόκοι & Πλαστελίνες",
-                                                                    "Πινέλα & Εργαλεία",
-                                                                    "Διαλυτικά & Αραιωτικά",
-                                                                    "Αξεσουάρ",
-                                                                    "Άλλο"
-                                                                ].map(cat => (
-                                                                    <option key={cat} value={cat}>{cat}</option>
-                                                                ))}
-                                                            </select>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="relative w-12 h-12 shrink-0">
+                                                                    <NextImage
+                                                                        src={getCategoryImage(aiCategory)}
+                                                                        alt={aiCategory}
+                                                                        fill
+                                                                        className="object-contain drop-shadow-[2px_4px_8px_rgba(0,0,0,0.1)]"
+                                                                    />
+                                                                </div>
+                                                                <select
+                                                                    value={aiCategory}
+                                                                    onChange={e => setAiCategory(e.target.value)}
+                                                                    className="flex h-8 w-full items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-1 text-xs ring-offset-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+                                                                >
+                                                                    <option value="">Επιλέξτε Κατηγορία</option>
+                                                                    {[
+                                                                        "Προετοιμασία & Καθαρισμός",
+                                                                        "Αστάρια & Υποστρώματα",
+                                                                        "Χρώματα Βάσης",
+                                                                        "Βερνίκια & Φινιρίσματα",
+                                                                        "Σκληρυντές & Ενεργοποιητές",
+                                                                        "Στόκοι & Πλαστελίνες",
+                                                                        "Πινέλα & Εργαλεία",
+                                                                        "Διαλυτικά & Αραιωτικά",
+                                                                        "Αξεσουάρ",
+                                                                        "Άλλο"
+                                                                    ].map(cat => (
+                                                                        <option key={cat} value={cat}>{cat}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                         <div className={cn("space-y-1", isFlagged('description') && "pl-2 border-l-2 border-amber-400")}>
                                                             <label className="text-[10px] font-bold text-zinc-500 uppercase flex items-center gap-1.5">

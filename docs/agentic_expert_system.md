@@ -46,7 +46,7 @@ The agent must understand the specific location of metadata within the `pavlicev
 - **Custom Metafields (`pavlicevits` namespace):**
   - `short_description`: Brief summary for collections (Greek).
   - `category`: Internal classification (`ProductCategory` Literal).
-    - *Available Values:* "Σπρέι Βαφής", "Χρώματα", "Ρητίνες", "Στόκοι", "Πινέλα & Ρολά", "Εργαλεία & Αξεσουάρ", "Διαλυτικά", "Καθαριστικά", "Άλλο".
+    - *Available Values:* "Προετοιμασία & Καθαρισμός", "Αστάρια & Υποστρώματα", "Χρώματα Βάσης", "Βερνίκια & Φινιρίσματα", "Σκληρυντές & Ενεργοποιητές", "Στόκοι & Πλαστελίνες", "Πινέλα & Εργαλεία", "Διαλυτικά & Αραιωτικά", "Αξεσουάρ", "Άλλο".
   - `brand`: Manufacturer brand.
   - `ai_confidence`: AI enrichment confidence score (0-1).
   - **Technical Specs (`PaintTechnicalSpecs` Model):**

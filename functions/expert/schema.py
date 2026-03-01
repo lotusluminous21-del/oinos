@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional, Literal, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
 # --- Domain & Taxonomies ---
@@ -11,6 +11,29 @@ class ProjectDomain(str, Enum):
     INDUSTRIAL = "industrial"
     WOODWORKING = "woodworking"
     GENERAL = "general"
+    HOME = "home"
+    UNKNOWN = "unknown"
+
+class ProjectType(str, Enum):
+    # Automotive
+    DAMAGE_REPAIR = "damage-repair"
+    NEW_PARTS = "new-parts-painting"
+    RESTORATION = "restoration"
+    PROTECTIVE = "protective-coatings"
+    CUSTOM = "custom-finishes"
+    # Marine
+    MARINE_ANTIFOULING = "marine-antifouling"
+    MARINE_GELCOAT = "marine-gelcoat-repair"
+    MARINE_TOPSIDE = "marine-topside-paint"
+    MARINE_WOOD = "marine-wood-varnish"
+    # Structural
+    STRUCTURAL_MASONRY = "structural-masonry-protection"
+    STRUCTURAL_WOOD = "structural-wood-staining"
+    STRUCTURAL_METAL = "structural-metal-gate-fence"
+    STRUCTURAL_INTERIOR = "structural-interior-wall"
+    # General
+    GENERAL_PAINTING = "general-painting"
+    UNKNOWN = "unknown"
 
 class ConfidenceLevel(str, Enum):
     LOW = "low"
@@ -34,10 +57,18 @@ class KnowledgeGaps(BaseModel):
     optional: List[str] = Field(default_factory=list)
 
 class KnowledgeState(BaseModel):
-    project_context: ProjectContext = Field(default_factory=ProjectContext)
-    confirmed: Dict[str, Any] = Field(default_factory=dict)
-    inferred: Dict[str, InferredValue] = Field(default_factory=dict)
+    domain: ProjectDomain = ProjectDomain.GENERAL
+    project_type: ProjectType = ProjectType.UNKNOWN
+    confirmed_facts: Dict[str, Any] = Field(default_factory=dict)
+    inferred_facts: Dict[str, InferredValue] = Field(default_factory=dict)
     gaps: KnowledgeGaps = Field(default_factory=KnowledgeGaps)
+
+    @field_validator('project_type', mode='before')
+    @classmethod
+    def handle_null_project_type(cls, v):
+        if v is None:
+            return ProjectType.UNKNOWN
+        return v
 
 # --- Chat & API Schemas ---
 

@@ -13,7 +13,7 @@ def match_products_for_step(
     """
     selected = []
     material = get_effective_value(state, 'material')
-    project_domain = state.project_context.project_domain
+    project_domain = state.domain
 
     # Mapping normalized MaterialType to Greek SurfaceSuitability
     material_to_surface_map = {

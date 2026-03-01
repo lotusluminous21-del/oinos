@@ -3,11 +3,10 @@
 @plugin "tailwindcss-animate";
 
 :root {
-  /* Brand Colors - High Contrast Industrial */
+  /* Brand Colors - Simulation Derived */
 
-  /* Pacific Blue (Extracted from Logo #015B6A - Lightened slightly for web readability if needed, keeping true for now) */
-  --primary: 189 98% 21%;
-  /* #015B6A -> HSL approx 189 98% 21% */
+  /* Teal from Fluid Simulation (#0E8283) */
+  --primary: 181 81% 28%;
   --primary-foreground: 0 0% 100%;
 
   /* Industrial Grey / Navy (Extracted #303C59) */
@@ -15,8 +14,8 @@
   /* #303C59 */
   --secondary-foreground: 0 0% 100%;
 
-  /* Accent - Sharp Cyan for highlights (Compliment to Pacific Blue) */
-  --accent: 189 80% 40%;
+  /* Purple from Fluid Simulation (#3C2D5B) */
+  --accent: 260 34% 27%;
   --accent-foreground: 0 0% 100%;
 
   --muted: 210 20% 96%;
@@ -26,8 +25,10 @@
   --destructive-foreground: 210 40% 98%;
 
   /* Neutral Scale - Pure White Mode Base */
-  --background: 210 20% 98%; /* Very light blue-gray off-white for contrast against pure white floating cards */
-  --foreground: 222 47% 11%; /* Very dark slate for soft black text */
+  --background: 210 20% 98%;
+  /* Very light blue-gray off-white for contrast against pure white floating cards */
+  --foreground: 222 47% 11%;
+  /* Very dark slate for soft black text */
 
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
@@ -37,19 +38,28 @@
 
   --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --ring: 189 98% 21%;
+  --ring: 181 81% 28%;
 
   /* Massive Radius for Pill geometry universally applied */
   --radius: 2rem;
-  
+
   /* Skeuomorphic Shadow Definitions mapped for Tailwind */
-  --shadow-skeuo-raised: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), inset 0 2px 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.05);
+  --shadow-skeuo-raised: 6px 6px 12px rgba(0, 0, 0, 0.06), -6px -6px 12px rgba(255, 255, 255, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.04), -1px -1px 2px rgba(255, 255, 255, 1);
+  --shadow-skeuo-raised-hover: 8px 8px 16px rgba(0, 0, 0, 0.08), -8px -8px 16px rgba(255, 255, 255, 0.9), 2px 2px 4px rgba(0, 0, 0, 0.03), -2px -2px 4px rgba(255, 255, 255, 1);
   --shadow-skeuo-pressed: inset 0 2px 4px 0 rgb(0 0 0 / 0.06), inset 0 4px 8px 0 rgb(0 0 0 / 0.08), inset 0 -1px 0 0 rgba(255, 255, 255, 0.7);
+  --shadow-skeuo-inset: inset 4px 4px 8px rgba(0, 0, 0, 0.06), inset -4px -4px 8px rgba(255, 255, 255, 0.7), inset 1px 1px 2px rgba(0, 0, 0, 0.05), inset -1px -1px 2px rgba(255, 255, 255, 0.9);
   --shadow-skeuo-float: 0 30px 60px -15px rgb(0 0 0 / 0.1), 0 20px 30px -10px rgb(0 0 0 / 0.05), inset 0 2px 1px 0 rgba(255, 255, 255, 1);
+  --shadow-skeuo-button: 0 4px 14px rgba(0, 212, 202, 0.4), inset 1px 1px 2px rgba(255, 255, 255, 0.4), inset -1px -1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-skeuo-button-active: inset 2px 2px 6px rgba(0, 0, 0, 0.1), inset -2px -2px 6px rgba(255, 255, 255, 0.2);
+
+  /* Skeuomorphic Base Colors */
+  --skeuo-bg: #F0F2F6;
+  --skeuo-accent: #00D4CA;
+  --skeuo-accent-dark: #00B8AF;
 
   /* Chart colors */
-  --chart-1: 189 98% 21%;
-  --chart-2: 222 30% 27%;
+  --chart-1: 181 81% 28%;
+  --chart-2: 260 34% 27%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
@@ -60,8 +70,6 @@
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-secondary: hsl(var(--secondary));
@@ -80,18 +88,28 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
+
+  --color-skeuo-bg: var(--skeuo-bg);
+  --color-skeuo-accent: var(--skeuo-accent);
+  --color-skeuo-accent-dark: var(--skeuo-accent-dark);
+
   --radius-sm: calc(var(--radius) - 8px);
   --radius-md: calc(var(--radius) - 4px);
   --radius-lg: calc(var(--radius));
   --radius-xl: calc(var(--radius) + 8px);
   --radius-full: 9999px;
-  
+
   --shadow-skeuo-raised: var(--shadow-skeuo-raised);
+  --shadow-skeuo-raised-hover: var(--shadow-skeuo-raised-hover);
   --shadow-skeuo-pressed: var(--shadow-skeuo-pressed);
+  --shadow-skeuo-inset: var(--shadow-skeuo-inset);
   --shadow-skeuo-float: var(--shadow-skeuo-float);
+  --shadow-skeuo-button: var(--shadow-skeuo-button);
+  --shadow-skeuo-button-active: var(--shadow-skeuo-button-active);
 
   /* Font Family Variables */
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-nunito);
+  --font-heading: var(--font-heading);
   --font-greek: var(--font-source-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -112,4 +130,87 @@ body {
 
 @utility glass-panel {
   @apply bg-white/80 backdrop-blur-lg border border-white/40 shadow-xl;
+}
+
+@utility hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@utility skeuo-card {
+  background-color: var(--skeuo-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-skeuo-raised);
+  transition: all 0.3s ease;
+}
+
+@utility skeuo-card-hover {
+  box-shadow: var(--shadow-skeuo-raised-hover);
+}
+
+@utility skeuo-card-pressed {
+  box-shadow: var(--shadow-skeuo-inset);
+}
+
+@utility skeuo-inset {
+  background-color: var(--skeuo-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-skeuo-inset);
+}
+
+@utility option-card {
+  @apply p-4 rounded-[var(--radius)] bg-skeuo-bg cursor-pointer transition-all duration-300;
+  box-shadow: var(--shadow-skeuo-raised);
+}
+
+@utility option-card-hover {
+  box-shadow: var(--shadow-skeuo-raised-hover);
+}
+
+@utility option-card-selected {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-skeuo-inset);
+}
+
+/* Typing Indicator Animation */
+.typing-dot {
+  animation: skeuo-bounce 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes skeuo-bounce {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-6px);
+  }
 }

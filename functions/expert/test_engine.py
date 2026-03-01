@@ -1,12 +1,18 @@
 import asyncio
 import os
 import sys
+import io
+
+# Force UTF-8 for stdout/stderr
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Add functions dir to python path to resolve imports correctly
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+# Add functions dir to python path
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from functions.expert.agent import PaintExpertAgent
-from functions.expert.schema import KnowledgeState
+from expert.agent import PaintExpertAgent
+from expert.schema import KnowledgeState
 
 # Mock products for testing
 mock_marine_products = [
@@ -47,8 +53,8 @@ async def run_test():
     
     if response_1.state:
         print("\nExtracted Context:")
-        print(f"- Domain: {response_1.state.get('project_context', {}).get('project_domain')}")
-        print(f"- Type: {response_1.state.get('project_context', {}).get('project_type')}")
+        print(f"- Domain: {response_1.state.get('domain')}")
+        print(f"- Type: {response_1.state.get('project_type')}")
         print(f"- Gaps: {response_1.state.get('gaps')}")
 
 if __name__ == "__main__":

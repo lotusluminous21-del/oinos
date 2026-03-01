@@ -39,7 +39,7 @@ export const SmartSearchBar = React.forwardRef<HTMLInputElement, SmartSearchBarP
 
                     <div className="pr-[4px] h-full flex items-center">
                         <button
-                            type="button"
+                            type="submit"
                             className={cn(
                                 "h-[48px] w-[48px] rounded-full flex items-center justify-center shrink-0 transition-all duration-300",
                                 // Button is RAISED (popping out), matte + highlight rim

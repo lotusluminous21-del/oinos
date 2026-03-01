@@ -5,8 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { FirebaseProvider } from './FirebaseProvider';
 
-import { CartProvider } from './CartProvider';
-
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
@@ -22,9 +20,7 @@ export function Providers({ children }: { children: ReactNode }) {
     return (
         <QueryClientProvider client={queryClient}>
             <FirebaseProvider>
-                <CartProvider>
-                    {children}
-                </CartProvider>
+                {children}
             </FirebaseProvider>
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>

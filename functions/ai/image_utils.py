@@ -1,6 +1,8 @@
 from PIL import Image, ImageOps
 import io
 import logging
+import math
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -169,4 +171,84 @@ def normalize_studio_png(image_bytes: bytes, target_size: int = 1024, target_are
         
     except Exception as e:
         logger.error(f"Failed to deeply normalize PNG: {e}", exc_info=True)
+        return image_bytes
+
+def apply_chroma_key(image_bytes: bytes, threshold: float = 0.15, softness: float = 0.1) -> bytes:
+    """
+    Advanced Chroma Key (Green Screen) removal using Pillow.
+    Features:
+    1. Adaptive Background Sampling: Samples corners to handle AI tone variations.
+    2. Perceptual Distance: Uses a slightly weighted RGB distance for green sensitivity.
+    3. Spill Suppression: Neutralizes green tint in semi-transparent areas (mists/splashes).
+    4. Soft Alpha: Feathered edges for professional-grade transparency.
+    """
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+            
+        width, height = img.size
+        pixels = img.getdata()
+        
+        # 1. Adaptive Sampling: Take samples from corners to find the "AI Green"
+        # We sample small 5x5 blocks in corners and average
+        corner_points = [(0,0), (width-5,0), (0,height-5), (width-5,height-5)]
+        sampled_greens = []
+        for cx, cy in corner_points:
+            for x in range(cx, cx+5):
+                for y in range(cy, cy+5):
+                    if 0 <= x < width and 0 <= y < height:
+                        r, g, b, _ = img.getpixel((x, y))
+                        sampled_greens.append((r, g, b))
+        
+        if not sampled_greens:
+            target_r, target_g, target_b = 0, 255, 0 # Fallback to pure green
+        else:
+            target_r = sum(p[0] for p in sampled_greens) / len(sampled_greens)
+            target_g = sum(p[1] for p in sampled_greens) / len(sampled_greens)
+            target_b = sum(p[2] for p in sampled_greens) / len(sampled_greens)
+            
+        logger.info(f"ChromaKey: Sampled background color: ({target_r:.1f}, {target_g:.1f}, {target_b:.1f})")
+
+        new_pixels = []
+        # Pre-calculate max distance for normalization (Euclidean max is ~441.67)
+        max_dist = 442.0 
+        
+        for r, g, b, a in pixels:
+            # 2. Perceptual Distance (Weighted to be more sensitive to Green differences)
+            dr = r - target_r
+            dg = g - target_g
+            db = b - target_b
+            
+            # Weighted Euclidean distance: Green has higher weight in chroma keying context
+            dist = math.sqrt(0.3*dr**2 + 0.5*dg**2 + 0.2*db**2) / max_dist
+            
+            # 3. Soft Alpha Masking
+            if dist < threshold:
+                new_alpha = 0
+            elif dist > threshold + softness:
+                new_alpha = a
+            else:
+                # Linear interpolation for the "soft" range
+                fraction = (dist - threshold) / softness
+                new_alpha = int(a * fraction)
+            
+            # 4. Spill Suppression (Critical for mists)
+            # If the pixel is semi-transparent and green is dominant, suppress it
+            if 0 < new_alpha < 255:
+                # If green is the strongest channel, clip it to the average of others
+                if g > r and g > b:
+                    avg_other = (r + b) // 2
+                    g = avg_other
+            
+            new_pixels.append((r, g, b, new_alpha))
+            
+        img.putdata(new_pixels)
+        
+        output = io.BytesIO()
+        img.save(output, format='PNG')
+        return output.getvalue()
+        
+    except Exception as e:
+        logger.error(f"ChromaKey failed: {e}", exc_info=True)
         return image_bytes

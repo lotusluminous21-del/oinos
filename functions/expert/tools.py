@@ -22,7 +22,7 @@ def search_products(
         query: Optional free-text keywords.
     """
     client = ExpertShopifyClient()
-    logger.info(f"Expert Tool: Searching with filters (cat={category}, base={chemical_base}, surf={surfaces})")
+    logger.info(f"Expert Tool: Searching with filters (cat={category}, base={chemical_base}, surf={surfaces}, q={query})")
     try:
         results = client.search_technical_products(
             category=category,
@@ -30,7 +30,18 @@ def search_products(
             surfaces=surfaces,
             query=query
         )
-        # Simplify results for the LLM to save tokens
+        logger.info(f"Expert Tool: initial targeted search returned {len(results)} raw products")
+        
+        if not results and (category or query):
+            broad_query = f"{category or ''} {query or ''}".strip()
+            logger.warning(f"Expert Tool: 0 results for specific filters. Retrying with broad query: '{broad_query}'")
+            results = client.search_technical_products(
+                query=broad_query,
+                limit=5
+            )
+            logger.info(f"Expert Tool: broad query returned {len(results)} raw products")
+            
+        # Simplify results
         simplified = []
         for p in results:
             simplified.append({
@@ -40,37 +51,15 @@ def search_products(
                 "chemical_base": p["metafields"].get("chemical_base"),
                 "sequence_step": p["metafields"].get("sequence_step"),
                 "surfaces": p["metafields"].get("surfaces"),
-                "price": p["variants"][0]["price"] if p["variants"] else "N/A",
+                "price": p["variants"][0]["price"] if p["variants"] else "0",
                 "variant_id": p["variants"][0]["id"] if p["variants"] else None
             })
+            
+        logger.info(f"Expert Tool: search_products successfully simplified {len(simplified)} products")
         return simplified
     except Exception as e:
-        logger.error(f"expert_tool.search_products failed: {e}")
+        logger.error("expert_tool.search_products failed", exc_info=e)
         return []
-        
-    # Fallback: If no results, try a broader keywords search
-    if not results and (category or query):
-        logger.info(f"Expert Tool: No results for specific filters. Retrying with broad query")
-        results = client.search_technical_products(
-            query=f"{category or ''} {query or ''}".strip(),
-            limit=5
-        )
-        # Simplify results for the LLM
-        simplified = []
-        for p in results:
-            simplified.append({
-                "title": p["title"],
-                "handle": p["handle"],
-                "category": p["metafields"].get("category", p["product_type"]),
-                "chemical_base": p["metafields"].get("chemical_base"),
-                "sequence_step": p["metafields"].get("sequence_step"),
-                "surfaces": p["metafields"].get("surfaces"),
-                "price": p["variants"][0]["price"] if p["variants"] else "N/A",
-                "variant_id": p["variants"][0]["id"] if p["variants"] else None
-            })
-        return simplified
-    
-    return simplified
 
 def get_paint_rules() -> Dict[str, Any]:
     """
@@ -114,16 +103,3 @@ def lookup_vin(vin: str) -> Dict[str, Any]:
         logger.error(f"expert_tool.lookup_vin failed: {e}")
         return {"error": "Could not decode VIN. Please check the number."}
 
-def search_vehicle_specs(query: str) -> Dict[str, Any]:
-    """
-    Searches for technical specifications, color codes, and paint location data.
-    Useful for motorbikes, rare cars, or when the user provides vague descriptions.
-    """
-    logger.info(f"Expert Tool: Searching vehicle specs for '{query}'")
-    # This tool identifies where the paint code is and common colors.
-    # The actual search is handled by the Agent's search capability, 
-    # but we provide this specific tool definition to guide the LLM.
-    return {
-        "instructions": "Use your external search capability to find: 1. Paint color code locations for this brand. 2. Common OEM color names for this year/model.",
-        "query_hint": query
-    }

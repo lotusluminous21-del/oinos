@@ -5,7 +5,7 @@ from .state_manager import get_effective_value
 from .product_matcher import match_products_for_step
 
 def calculate_difficulty(state: KnowledgeState) -> str:
-    ptype = state.project_context.project_type
+    ptype = state.project_type
     depth = get_effective_value(state, 'damageDepth')
     size = get_effective_value(state, 'damageSize')
     rust = get_effective_value(state, 'rustPresent')
@@ -28,10 +28,10 @@ def generate_damage_repair_steps(state: KnowledgeState, products: List[Dict]) ->
 
     steps.append({
         "order": order,
-        "title": "Clean & Prep",
-        "description": "Thoroughly clean the area to remove wax, grease, and dirt.",
-        "tips": ["Use a degreaser or dish soap", "Dry completely with a microfiber towel"],
-        "warnings": ["Do not use alcohol as it might affect sensitive plastics"],
+        "title": "Καθαρισμός & Προετοιμασία",
+        "description": "Καθαρίστε διεξοδικά την περιοχή για να αφαιρέσετε το κερί, τα λίπη και τη σκόνη.",
+        "tips": ["Χρησιμοποιήστε αποστεωτικό ή απορρυπαντικό", "Στεγνώστε εντελώς με μικροΐνα"],
+        "warnings": ["Μην χρησιμοποιείτε αλκοόλ σε ευαίσθητα πλαστικά"],
         "products": [p['handle'] for p in match_products_for_step("cleaning", state, products)]
     })
     order += 1
@@ -39,10 +39,10 @@ def generate_damage_repair_steps(state: KnowledgeState, products: List[Dict]) ->
     if depth != 'surface':
         steps.append({
             "order": order,
-            "title": "Sand",
-            "description": "Carefully sand the damaged edges to smooth them out.",
-            "tips": ["Use medium grit sandpaper", "Do not sand too far outside the damage area"],
-            "warnings": ["Wear a mask to avoid inhaling paint dust"],
+            "title": "Λείανση",
+            "description": "Λειάνετε προσεκτικά τα άκρα της ζημιάς για να τα ομαλοποιήσετε.",
+            "tips": ["Χρησιμοποιήστε μέτριο κόκκο γυαλόχαρτο", "Μην λειαίνετε έξω από την περιοχή της ζημιάς"],
+            "warnings": ["Φορέστε μάσκα για να αποφύγετε την εισπνοή σκόνης βαφής"],
             "products": [p['handle'] for p in match_products_for_step("abrasives", state, products)]
         })
         order += 1
@@ -50,10 +50,10 @@ def generate_damage_repair_steps(state: KnowledgeState, products: List[Dict]) ->
     if rust:
         steps.append({
             "order": order,
-            "title": "Rust Treatment",
-            "description": "Convert or remove the existing rust to prevent it from coming back.",
-            "tips": ["Ensure loose rust is brushed off first", "Let the converter cure fully"],
-            "warnings": ["Rust converters are acidic, use gloves"],
+            "title": "Αντισκωριακή Επεξεργασία",
+            "description": "Μετατρέψτε ή αφαιρέστε τη σκουριά για να αποτρέψετε την υποτροπή.",
+            "tips": ["Βουρτσίστε πρώτα τη χαλαρή σκουριά", "Αφήστε τον μετατροπέα να σκληρυνθεί πλήρως"],
+            "warnings": ["Οι μετατροπείς σκουριάς είναι όξινοι – χρησιμοποιήστε γάντια"],
             "products": [p['handle'] for p in match_products_for_step("rust-treatments", state, products)]
         })
         order += 1
@@ -61,10 +61,10 @@ def generate_damage_repair_steps(state: KnowledgeState, products: List[Dict]) ->
     if depth in ['to-primer', 'to-metal']:
         steps.append({
             "order": order,
-            "title": "Prime",
-            "description": "Apply primer to fill the depth and provide adhesion for the paint.",
-            "tips": ["Spray light coats", "Wait for it to dry and lightly sand smooth"],
-            "warnings": ["Clean the surface again after sanding primer"],
+            "title": "Αστάρωμα",
+            "description": "Εφαρμόστε αστάρι για να γεμίσετε το βάθος και να εξασφαλίσετε πρόσφυση.",
+            "tips": ["Ψεκάστε σε λεπτά στρώματα", "Αφήστε να στεγνώσει και λειάνετε ελαφρά"],
+            "warnings": ["Ξαναδιαβρέψτε/καθαρίστε την επιφάνεια μετά τη λείανση ασταριού"],
             "products": [p['handle'] for p in match_products_for_step("primers", state, products)]
         })
         order += 1
@@ -72,20 +72,20 @@ def generate_damage_repair_steps(state: KnowledgeState, products: List[Dict]) ->
     if depth != 'surface':
         steps.append({
             "order": order,
-            "title": "Base Coat (Color)",
-            "description": "Apply your matching paint color.",
-            "tips": ["Apply in thin layers", "Allow 10-15 minutes between coats"],
-            "warnings": ["Check color match on a test card first"],
+            "title": "Βασικό Χρώμα (Base Coat)",
+            "description": "Εφαρμόστε το χρώμα που ταιριάζει με το αυτοκίνητό σας.",
+            "tips": ["Εφαρμόστε σε λεπτά στρώματα", "Αφήστε 10-15 λεπτά μεταξύ στρωμάτων"],
+            "warnings": ["Ελέγξτε πρώτα τη συμφωνία χρώματος σε δοκιμαστικό χαρτί"],
             "products": [p['handle'] for p in match_products_for_step("base-coats", state, products)]
         })
         order += 1
 
     steps.append({
         "order": order,
-        "title": "Clear Coat & Polish",
-        "description": "Protect the new paint and blend the finish to match the rest of the panel.",
-        "tips": ["Clear coat is crucial for UV protection", "Wait 24h before polishing"],
-        "warnings": ["Ensure base coat is touch-dry before clear coating"],
+        "title": "Βερνίκι & Polish",
+        "description": "Προστατέψτε τη νέα βαφή και ενταχθείτε στο φινίρισμα του υπόλοιπου πάνελ.",
+        "tips": ["Το βερνίκι είναι απαραίτητο για UV προστασία", "Περιμένετε 24ω πριν το polish"],
+        "warnings": ["Βεβαιωθείτε ότι το βασικό χρώμα είναι ξηρό πριν βερνικώσετε"],
         "products": [p['handle'] for p in match_products_for_step("polishing", state, products)]
     })
 
@@ -93,7 +93,8 @@ def generate_damage_repair_steps(state: KnowledgeState, products: List[Dict]) ->
 
 def generate_marine_steps(state: KnowledgeState, products: List[Dict]) -> List[Dict]:
     steps = []
-    ptype = state.project_context.project_type
+    ptype_raw = state.project_type
+    ptype = ptype_raw.value if hasattr(ptype_raw, 'value') else str(ptype_raw)
     order = 1
 
     prep_prods = match_products_for_step('Προετοιμασία/Καθαριστικό', state, products)
@@ -102,10 +103,10 @@ def generate_marine_steps(state: KnowledgeState, products: List[Dict]) -> List[D
 
     steps.append({
         "order": order,
-        "title": "Hull/Deck Preparation",
-        "description": "Clean the marine surface thoroughly, removing salt, algae, and loose material.",
-        "tips": ["Use a marine-grade degreaser", "Pressure wash if possible"],
-        "warnings": ["Ensure hull is completely dry before repair"],
+        "title": "Προετοιμασία Γάστρας/Καταστρώματος",
+        "description": "Καθαρίστε διεξοδικά την επιφάνεια, αφαιρώντας αλάτι, φύκια και χαλαρό υλικό.",
+        "tips": ["Χρησιμοποιήστε θαλάσσιο αποστεωτικό", "Πλύνετε με πίεση αν είναι δυνατόν"],
+        "warnings": ["Βεβαιωθείτε ότι η γάστρα είναι τελείως στεγνή πριν τη συνέχεια"],
         "products": [p['handle'] for p in prep_prods]
     })
     order += 1
@@ -113,28 +114,28 @@ def generate_marine_steps(state: KnowledgeState, products: List[Dict]) -> List[D
     if ptype == 'marine-antifouling':
         steps.append({
             "order": order,
-            "title": "Antifouling Application",
-            "description": "Apply antifouling bottom paint to prevent marine growth.",
-            "tips": ["Ensure the hull is completely dry", "Apply two coats, with an extra coat on the waterline"],
-            "warnings": ["Avoid painting over transducers or anodes"],
+            "title": "Εφαρμογή Αντιρρυπαντικής Βαφής",
+            "description": "Εφαρμόστε αντιρρυπαντικό χρώμα πυθμένα για αποτροπή θαλάσσιας ανάπτυξης.",
+            "tips": ["Βεβαιωθείτε ότι η γάστρα είναι τελείως στεγνή", "Εφαρμόστε δύο στρώματα, με ένα επιπλέον στη γραμμή νερού"],
+            "warnings": ["Αποφύγετε βαφή πάνω από ηχοβολιστές ή ανόδια"],
             "products": [p['handle'] for p in match_products_for_step('Βασικό Χρώμα', state, products)]
         })
     elif ptype == 'marine-gelcoat-repair':
         steps.append({
             "order": order,
-            "title": "Gelcoat Repair",
-            "description": "Fill the blister or crack with marine gelcoat or epoxy.",
-            "tips": ["Mix hardener precisely", "Sand flush after curing"],
-            "warnings": ["Keep temperatures above 15°C for proper curing"],
+            "title": "Επισκευή Gelcoat",
+            "description": "Γεμίστε τη φυσαλίδα ή την ρωγμή με θαλάσσιο gelcoat ή εποξική ρητίνη.",
+            "tips": ["Αναμείξτε τον σκληρυντή με ακρίβεια", "Λειάνετε μετά τη σκλήρυνση"],
+            "warnings": ["Κρατήστε θερμοκρασίες άνω των 15°C για σωστή σκλήρυνση"],
             "products": [p['handle'] for p in match_products_for_step('fillers', state, products)]
         })
     else:
         steps.append({
             "order": order,
-            "title": "Marine Topcoat",
-            "description": "Apply UV-resistant marine topside paint.",
-            "tips": ["Use the roll and tip method for a smooth finish"],
-            "warnings": ["Protect from dew for at least 6 hours after application"],
+            "title": "Θαλάσσιο Topcoat",
+            "description": "Εφαρμόστε UV-ανθεκτική θαλάσσια βαφή πλευρών.",
+            "tips": ["Χρησιμοποιήστε τη μέθοδο roll-and-tip για λείο φινίρισμα"],
+            "warnings": ["Προστατέψτε από δρόσο για τουλάχιστον 6 ώρες μετά"],
             "products": [p['handle'] for p in match_products_for_step('Βασικό Χρώμα', state, products)]
         })
 
@@ -146,10 +147,10 @@ def generate_structural_steps(state: KnowledgeState, products: List[Dict]) -> Li
 
     steps.append({
         "order": order,
-        "title": "Surface Cleaning",
-        "description": "Remove dirt, loose paint, and debris.",
-        "tips": ["Wire brush for metal", "Power wash for masonry/wood"],
-        "warnings": ["Check for structural rot or rust damage"],
+        "title": "Καθαρισμός Επιφάνειας",
+        "description": "Αφαιρέστε σκόνη, χαλαρή βαφή και αποθέσεις.",
+        "tips": ["Χαλύβδινη βούρτσα για μέταλλα", "Πλύσιμο με πίεση για τοιχοποιία/ξύλο"],
+        "warnings": ["Ελέγξτε για δομική σήψη ή ζημιά από σκουριά"],
         "products": [p['handle'] for p in match_products_for_step('Προετοιμασία/Καθαριστικό', state, products)]
     })
     order += 1
@@ -158,28 +159,29 @@ def generate_structural_steps(state: KnowledgeState, products: List[Dict]) -> Li
     if rust:
         steps.append({
             "order": order,
-            "title": "Rust Conversion",
-            "description": "Treat the rusted structural metal.",
-            "tips": ["Allow 24 hours to cure until black"],
-            "warnings": ["Do not wash after conversion; wait for full cure"],
+            "title": "Μετατροπή Σκουριάς",
+            "description": "Επεξεργαστείτε τη σκουριωμένη δομική μεταλλική επιφάνεια.",
+            "tips": ["Αφήστε 24 ώρες να σκληρυνθεί ώσπου να μαυρίσει"],
+            "warnings": ["Μην ξεπλύνετε μετά τη μετατροπή – περιμένετε πλήρη σκλήρυνση"],
             "products": [p['handle'] for p in match_products_for_step('rust-treatments', state, products)]
         })
         order += 1
 
     steps.append({
         "order": order,
-        "title": "Application",
-        "description": "Apply the structural paint or stain.",
-        "tips": ["Follow the grain for wood", "Ensure full coverage on porous masonry"],
-        "warnings": ["Avoid application during high humidity"],
+        "title": "Εφαρμογή Χρώματος",
+        "description": "Εφαρμόστε τη δομική βαφή ή λάκα.",
+        "tips": ["Ακολουθήστε τη ροή σε ξύλο", "Εξασφαλίστε πλήρη κάλυψη σε πορώδη τοιχοποιία"],
+        "warnings": ["Αποφύγετε εφαρμογή σε υψηλή υγρασία"],
         "products": [p['handle'] for p in match_products_for_step('Βασικό Χρώμα', state, products)]
     })
 
     return steps
 
 def generate_solution(state: KnowledgeState, available_products: List[Dict]) -> Dict[str, Any]:
-    project_domain = state.project_context.project_domain.value if state.project_context.project_domain else 'automotive'
-    ptype = state.project_context.project_type
+    project_domain = state.domain.value if hasattr(state.domain, 'value') else str(state.domain)
+    ptype_raw = state.project_type
+    ptype = ptype_raw.value if hasattr(ptype_raw, 'value') else str(ptype_raw)
     
     steps = []
 
@@ -189,10 +191,10 @@ def generate_solution(state: KnowledgeState, available_products: List[Dict]) -> 
         else:
             steps = [{
                 "order": 1,
-                "title": "Automotive Custom/Restoration",
-                "description": "Follow general preparation, painting, and finishing guidelines.",
-                "tips": ["Always prep well", "Take your time"],
-                "warnings": ["Use consistent light conditions"],
+                "title": "Αυτοκινητιστική Αποκατάσταση / Custom",
+                "description": "Ακολουθήστε τις γενικές οδηγίες προετοιμασίας, βαφής και φινιρίσματος.",
+                "tips": ["Η καλή προετοιμασία είναι το παν", "Αφιερώστε χρόνο σε κάθε βήμα"],
+                "warnings": ["Χρησιμοποιήστε σταθερό φωτισμό για αξιόπιστη αξιολόγηση χρώματος"],
                 "products": [p['handle'] for p in match_products_for_step('cleaning', state, available_products)]
             }]
     elif project_domain == 'marine':
@@ -202,10 +204,10 @@ def generate_solution(state: KnowledgeState, available_products: List[Dict]) -> 
     else:
         steps = [{
             "order": 1,
-            "title": "General Painting Plan",
-            "description": "Follow general preparation, painting, and finishing guidelines.",
-            "tips": ["Always prep well", "Take your time"],
-            "warnings": ["Ensure compatibility between layers"],
+            "title": "Γενικό Πλάνο Βαφής",
+            "description": "Ακολουθήστε τις γενικές οδηγίες προετοιμασίας, βαφής και φινιρίσματος.",
+            "tips": ["Η καλή προετοιμασία είναι το παν", "Αφιερώστε χρόνο σε κάθε βήμα"],
+            "warnings": ["Βεβαιωθείτε για τη συμβατότητα μεταξύ στρωμάτων"],
             "products": [p['handle'] for p in match_products_for_step('cleaning', state, available_products)]
         }]
 
@@ -231,14 +233,33 @@ def generate_solution(state: KnowledgeState, available_products: List[Dict]) -> 
             
     assumptions = []
     if get_effective_value(state, 'damageDepth') == 'unknown':
-        assumptions.append("Assuming standard surface damage for base calculation.")
+        assumptions.append("Γίνεται παραδοχή τυπικής επιφανειακής ζημιάς για βασικό υπολογισμό.")
+
+    # Build a human-readable Greek project type title
+    project_type_labels = {
+        'damage-repair': 'Επισκευή Ζημιάς',
+        'new-parts-painting': 'Βαφή Καινούριου Εξαρτήματος',
+        'restoration': 'Αποκατάσταση',
+        'protective-coatings': 'Προστατευτικές Επικαλύψεις',
+        'custom-finishes': 'Custom Φινίρισμα',
+        'marine-antifouling': 'Θαλάσσιο Αντιρρυπαντικό',
+        'marine-gelcoat-repair': 'Επισκευή Gelcoat',
+        'marine-topside-paint': 'Θαλάσσια Βαφή Πλευρών',
+        'marine-wood-varnish': 'Θαλάσσιο Λούστρο Ξύλου',
+        'structural-masonry-protection': 'Προστασία Τοιχοποιίας',
+        'structural-wood-staining': 'Βαφή Ξύλου',
+        'structural-metal-gate-fence': 'Βαφή Μεταλλικής Κατασκευής',
+        'structural-interior-wall': 'Εσωτερική Βαφή Τοίχου',
+        'general-painting': 'Γενική Βαφή',
+    }
+    title_label = project_type_labels.get(str(ptype), str(ptype).replace('-', ' ').title())
 
     return {
         "id": f"sol-{int(time.time())}",
-        "title": f"Your {str(ptype).replace('-', ' ').title()} Plan",
+        "title": f"Πλάνο: {title_label}",
         "projectType": ptype,
         "difficulty": calculate_difficulty(state),
-        "estimatedTime": "2-4 hours",
+        "estimatedTime": "2-4 ώρες",
         "steps": steps,
         "totalPrice": total_price,
         "totalProducts": total_products,

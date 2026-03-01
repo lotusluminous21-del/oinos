@@ -12,6 +12,8 @@ import {
     CheckCircle2,
     Settings,
 } from "lucide-react";
+import Image from "next/image";
+import { getCategoryImage } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -205,8 +207,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ sku: s
                             <div className="grid grid-cols-3 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-semibold text-zinc-900">Category</label>
-                                    <div className="text-sm bg-zinc-50 border border-zinc-200 h-9 px-3 py-2 rounded-md">
-                                        {product.ai_data?.category || "Uncategorized"}
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative w-12 h-12 shrink-0">
+                                            <Image
+                                                src={getCategoryImage(product.ai_data?.category || "")}
+                                                alt={product.ai_data?.category || "Uncategorized"}
+                                                fill
+                                                className="object-contain drop-shadow-[2px_4px_8px_rgba(0,0,0,0.1)]"
+                                            />
+                                        </div>
+                                        <div className="text-sm bg-zinc-50 border border-zinc-200 h-9 px-3 py-2 rounded-md flex-1 flex items-center">
+                                            {product.ai_data?.category || "Uncategorized"}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">

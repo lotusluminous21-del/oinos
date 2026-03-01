@@ -19,22 +19,19 @@ class UtilityAgent:
         from firebase_admin import storage
         
         try:
-            # 1. Call Fal.ai for the raw background removal
+            # Always use Fal.ai for background removal as per latest quality requirements
+            logger.info(f"UtilityAgent: Using Fal.ai RemBG for {sku} {suffix}")
             result = fal_client.subscribe(
-                "fal-ai/imageutils/rembg",
+                "fal-ai/bria/background/remove",
                 arguments={"image_url": url},
                 with_logs=False
             )
             raw_png_url = result['image']['url']
+            transparent_bytes = requests.get(raw_png_url, timeout=15).content
             
-            # 2. Download the temporary raw PNG
-            resp = requests.get(raw_png_url, timeout=15)
-            resp.raise_for_status()
-            raw_png_bytes = resp.content
-            
-            # 3. Apply Visual Weight & Center of Mass Normalization
+            # 2. Apply Visual Weight & Center of Mass Normalization
             logger.info(f"UtilityAgent: Normalizing Visual Weight for {sku} {suffix}")
-            final_png_bytes = normalize_studio_png(raw_png_bytes)
+            final_png_bytes = normalize_studio_png(transparent_bytes)
             
             # 4. Upload to permanent Firebase Storage
             bucket = storage.bucket()
@@ -74,10 +71,11 @@ class UtilityAgent:
             })
             return
 
-        # Bypass background removal for styled/realistic environments to preserve visual elements
+        # Bypass background removal ONLY for realistic environments (workshop backgrounds)
+        # Styled/Modern environments now use green-screen and local removal
         if mode == "generated":
             environment = ai_data.get("environment", "styled")
-            if environment in ["styled", "realistic"]:
+            if environment == "realistic":
                 logger.info(f"UtilityAgent: Bypassing background removal for {sku} (Environment: {environment})")
                 
                 # Final Formatting for UI array

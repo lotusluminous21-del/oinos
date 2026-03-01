@@ -1,0 +1,4 @@
+src/app/home-content.tsx(72,13): error TS2353: Object literal may only specify known properties, and 'availableForSale' does not exist in type 'Product'.
+src/app/home-content.tsx(98,13): error TS2353: Object literal may only specify known properties, and 'availableForSale' does not exist in type 'Product'.
+src/app/home-content.tsx(118,13): error TS2353: Object literal may only specify known properties, and 'availableForSale' does not exist in type 'Product'.
+src/app/home-content.tsx(138,13): error TS2353: Object literal may only specify known properties, and 'availableForSale' does not exist in type 'Product'.

@@ -41,8 +41,11 @@ class SystemLogger:
             }
             db.collection("system_logs").add(log_entry)
         except Exception as e:
-            # We must use standard print here to avoid infinite recursion if logger fails
-            print(f"CRITICAL: Failed to write system log to Firestore: {e}")
+            # We must use standard print here to avoid infinite recursion if logger fails.
+            # Output to stderr for better visibility in function logs.
+            import sys
+            print(f"LOGGER_FIREBASE_FAILURE: {self.logger.name} failed to add to 'system_logs' collection. Error: {e}", file=sys.stderr)
+            print(f"MESSAGE_LOST: [{level}] {message}", file=sys.stderr)
 
     def info(self, message: str, sku: str = None, **kwargs):
         self.logger.info(message)
