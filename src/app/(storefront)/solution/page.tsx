@@ -13,6 +13,7 @@ import {
     Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IndexedFadeInUp, StaggerContainer, FadeInUp } from '@/components/ui/motion';
 
 import { useExpertStore } from '@/lib/expert/store';
 import { cn } from '@/lib/utils';
@@ -122,11 +123,7 @@ export default function SolutionPage() {
                 <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 py-8 md:py-14">
 
                     {/* ── Hero Section ─────────────────────────────────── */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 items-end"
-                    >
+                    <IndexedFadeInUp index={0} className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 items-end">
                         <div className="lg:col-span-8 space-y-4">
                             {/* AI badge */}
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/10 text-accent border border-accent/20 text-xs font-bold uppercase tracking-wider">
@@ -153,7 +150,7 @@ export default function SolutionPage() {
                                 <Share2 className="w-4 h-4" />
                             </button>
                         </div>
-                    </motion.div>
+                    </IndexedFadeInUp>
 
                     {/* ── Dashboard Grid ────────────────────────────────── */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
@@ -161,12 +158,7 @@ export default function SolutionPage() {
                         {/* Sidebar */}
                         <aside className="lg:col-span-4 space-y-6">
                             {/* Project Summary */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.05 }}
-                                className="bg-card border border-border rounded-lg p-6"
-                            >
+                            <IndexedFadeInUp index={1} className="bg-card border border-border rounded-lg p-6">
                                 <div className="flex items-center gap-2 mb-5">
                                     <ClipboardList className="w-5 h-5 text-muted-foreground" />
                                     <h3 className="text-sm font-bold uppercase tracking-widest text-foreground">Project Summary</h3>
@@ -190,16 +182,11 @@ export default function SolutionPage() {
                                         </div>
                                     ))}
                                 </div>
-                            </motion.div>
+                            </IndexedFadeInUp>
 
                             {/* Safety Protocol */}
                             {allWarnings.length > 0 && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 16 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="bg-accent/5 border border-accent/20 rounded-lg p-6"
-                                >
+                                <IndexedFadeInUp index={2} className="bg-accent/5 border border-accent/20 rounded-lg p-6">
                                     <div className="flex items-center gap-2 mb-3">
                                         <ShieldCheck className="w-5 h-5 text-accent" />
                                         <h3 className="text-sm font-bold uppercase tracking-widest text-accent">Safety Protocol</h3>
@@ -212,16 +199,11 @@ export default function SolutionPage() {
                                             </li>
                                         ))}
                                     </ul>
-                                </motion.div>
+                                </IndexedFadeInUp>
                             )}
 
                             {/* Cost Summary */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.15 }}
-                                className="bg-card border border-border rounded-lg p-6"
-                            >
+                            <IndexedFadeInUp index={3} className="bg-card border border-border rounded-lg p-6">
                                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Total Estimated Cost</p>
                                 <div className="flex items-baseline gap-2">
                                     <p className="text-3xl font-black text-foreground">
@@ -238,17 +220,12 @@ export default function SolutionPage() {
                                     <ShoppingCart className="w-4 h-4" />
                                     Add All to Cart
                                 </button>
-                            </motion.div>
+                            </IndexedFadeInUp>
                         </aside>
 
                         {/* Step-by-Step Guideline Panel */}
                         <div className="lg:col-span-8">
-                            <motion.div
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className="bg-card border border-border rounded-lg overflow-hidden"
-                            >
+                            <IndexedFadeInUp index={4} className="bg-card border border-border rounded-lg overflow-hidden">
                                 {/* Panel Header */}
                                 <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-secondary/40">
                                     <h3 className="text-sm font-bold uppercase tracking-widest text-foreground">Step-by-Step Guideline</h3>
@@ -371,16 +348,14 @@ export default function SolutionPage() {
                                         );
                                     })}
                                 </div>
-                            </motion.div>
+                            </IndexedFadeInUp>
                         </div>
                     </div>
 
                     {/* ── Recommended Products ──────────────────────────── */}
                     {allProducts.length > 0 && (
-                        <motion.section
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.25 }}
+                        <FadeInUp
+                            delay={0.25}
                             className="mb-8"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
@@ -397,13 +372,11 @@ export default function SolutionPage() {
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                            <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                                 {allProducts.map((p, idx) => (
-                                    <motion.div
+                                    <FadeInUp
                                         key={`${p.handle}-${idx}`}
-                                        initial={{ opacity: 0, y: 12 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.1 + idx * 0.05 }}
+                                        inStaggerGroup
                                     >
                                         <SolutionProductItem
                                             handle={p.handle}
@@ -415,10 +388,10 @@ export default function SolutionPage() {
                                             isCustomPaint={p.isCustomPaint}
                                             customColorInfo={p.customColorInfo}
                                         />
-                                    </motion.div>
+                                    </FadeInUp>
                                 ))}
-                            </div>
-                        </motion.section>
+                            </StaggerContainer>
+                        </FadeInUp>
                     )}
                 </div>
             </main>

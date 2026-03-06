@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="el">
       <body
-        className={`${nunito.variable} ${sourceSans.variable} ${geistMono.variable} ${manrope.variable} antialiased min-h-screen flex flex-col font-sans overflow-x-hidden w-full relative`}
+        className={`${nunito.variable} ${sourceSans.variable} ${geistMono.variable} ${manrope.variable} antialiased min-h-screen flex flex-col font-sans overflow-x-clip w-full relative`}
       >
         <Providers>
           <AuthProvider>

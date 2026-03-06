@@ -14,6 +14,8 @@ import {
     X,
     Layers,
 } from "lucide-react"
+import { IndexedFadeInUp, FadeInUp, StaggerContainer } from "@/components/ui/motion"
+import { ScopedKineticBlur } from "@/components/effects/ScopedKineticBlur"
 
 const SORT_OPTIONS = [
     { label: 'Προεπιλογή', value: 'default' },
@@ -399,7 +401,7 @@ export function CategoriesClient({
                         </div>
                     )}
 
-                    <FilterSection title="Μάρκα" options={availableBrands} selected={selectedBrands} setter={setSelectedBrands} defaultOpen={true} />
+                    <FilterSection title="Μάρκα" options={availableBrands} selected={selectedBrands} setter={setSelectedBrands} />
                     <FilterSection title="Χημική Βάση" options={availableChemicalBases} selected={selectedChemicalBases} setter={setSelectedChemicalBases} />
                     <FilterSection title="Φινίρισμα" options={availableFinishes} selected={selectedFinishes} setter={setSelectedFinishes} />
                     <FilterSection title="Εφαρμογή" options={availableApplications} selected={selectedApplications} setter={setSelectedApplications} />
@@ -441,8 +443,16 @@ export function CategoriesClient({
 
             <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
                 {/* Desktop Sidebar */}
-                <aside className="hidden lg:block w-64 shrink-0">
-                    {sidebarContent}
+                <aside className="hidden lg:block w-64 shrink-0 relative">
+                    <div data-lenis-prevent="true" className="sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto overscroll-contain pb-8 pr-4"
+                         style={{ 
+                             scrollbarWidth: 'thin', 
+                             scrollbarColor: 'hsl(var(--muted-foreground)) transparent'
+                         }}>
+                        <FadeInUp delay={0.2}>
+                            {sidebarContent}
+                        </FadeInUp>
+                    </div>
                 </aside>
 
                 {/* Mobile Filter Toggle */}
@@ -468,7 +478,7 @@ export function CategoriesClient({
                             className="absolute inset-0 bg-black/50"
                             onClick={() => setMobileFiltersOpen(false)}
                         />
-                        <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-background border-r border-border p-6 overflow-y-auto">
+                        <div data-lenis-prevent="true" className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-background border-r border-border p-6 overflow-y-auto">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-sm font-bold uppercase tracking-widest">Φίλτρα</h3>
                                 <button
@@ -487,22 +497,26 @@ export function CategoriesClient({
                 <section className="flex-1 min-w-0">
                     {/* Hero Heading */}
                     <div className="mb-8 md:mb-12">
-                        <h1 className="text-5xl sm:text-6xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-4">
-                            {secondLine ? (
-                                <>
-                                    {firstLine}<br />
-                                    <span className="text-accent">{secondLine}</span>
-                                </>
-                            ) : (
-                                <span>{categoryTitle}</span>
-                            )}
-                        </h1>
-                        <p className="text-sm font-medium text-muted-foreground max-w-xl uppercase tracking-wider">
-                            {activeType === 'all'
-                                ? 'Περιηγηθείτε στην πλήρη γκάμα των επαγγελματικών προϊόντων μας.'
-                                : `Επαγγελματικά ${activeType.toLowerCase()} σχεδιασμένα για ακραία αντοχή και απόδοση.`
-                            }
-                        </p>
+                        <IndexedFadeInUp index={0}>
+                            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-4">
+                                {secondLine ? (
+                                    <>
+                                        {firstLine}<br />
+                                        <span className="text-accent">{secondLine}</span>
+                                    </>
+                                ) : (
+                                    <span>{categoryTitle}</span>
+                                )}
+                            </h1>
+                        </IndexedFadeInUp>
+                        <IndexedFadeInUp index={1}>
+                            <p className="text-sm font-medium text-muted-foreground max-w-xl uppercase tracking-wider">
+                                {activeType === 'all'
+                                    ? 'Περιηγηθείτε στην πλήρη γκάμα των επαγγελματικών προϊόντων μας.'
+                                    : `Επαγγελματικά ${activeType.toLowerCase()} σχεδιασμένα για ακραία αντοχή και απόδοση.`
+                                }
+                            </p>
+                        </IndexedFadeInUp>
                     </div>
 
                     {/* Toolbar */}
@@ -546,7 +560,7 @@ export function CategoriesClient({
                     </div>
 
                     {/* Product Grid */}
-                    <div>
+                    <ScopedKineticBlur className="w-full">
                         {filteredProducts.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-16 text-center">
                                 <p className="text-lg font-bold text-foreground uppercase tracking-tight">Δεν Βρέθηκαν Προϊόντα</p>
@@ -570,61 +584,38 @@ export function CategoriesClient({
                                 )}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <StaggerContainer key={filteredProducts.map(p => p.id).join(',')} staggerDelay={0.15} viewportAmount="some" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {filteredProducts.map((product) => {
                                     const price = parseFloat(product.priceRange.minVariantPrice.amount)
                                     const imageUrl = product.featuredImage?.url || ''
 
                                     return (
-                                        <Link key={product.id} href={`/products/${product.handle}`} className="outline-none">
-                                            <ProductCard
-                                                id={product.id}
-                                                title={product.title}
-                                                category={product.productType || 'Γενικά'}
-                                                categoryColor={product.productType ? 'primary' : 'muted'}
-                                                price={price}
-                                                priceUnit={product.variants?.edges?.[0]?.node?.title !== 'Default Title'
-                                                    ? product.variants?.edges?.[0]?.node?.title
-                                                    : ''
-                                                }
-                                                image={imageUrl}
-                                                badge={product.tags?.includes('new') ? 'New Arrival' : undefined}
-                                                badgeVariant="new"
-                                                inStock={product.variants?.edges?.[0]?.node?.availableForSale ?? true}
-                                                className="h-full"
-                                            />
-                                        </Link>
+                                        <FadeInUp inStaggerGroup key={product.id} className="h-full">
+                                            <Link href={`/products/${product.handle}`} className="outline-none block h-full">
+                                                <ProductCard
+                                                    id={product.id}
+                                                    title={product.title}
+                                                    category={product.productType || 'Γενικά'}
+                                                    categoryColor={product.productType ? 'primary' : 'muted'}
+                                                    price={price}
+                                                    priceUnit={product.variants?.edges?.[0]?.node?.title !== 'Default Title'
+                                                        ? product.variants?.edges?.[0]?.node?.title
+                                                        : ''
+                                                    }
+                                                    image={imageUrl}
+                                                    badge={product.tags?.includes('new') ? 'New Arrival' : undefined}
+                                                    badgeVariant="new"
+                                                    inStock={product.variants?.edges?.[0]?.node?.availableForSale ?? true}
+                                                    className="h-full"
+                                                />
+                                            </Link>
+                                        </FadeInUp>
                                     )
                                 })}
-                            </div>
+                            </StaggerContainer>
                         )}
-                    </div>
+                    </ScopedKineticBlur>
 
-                    {/* Pagination (decorative) */}
-                    {filteredProducts.length > 0 && (
-                        <div className="mt-10 md:mt-12 flex justify-center">
-                            <div className="flex items-center gap-1">
-                                <button className="w-10 h-10 flex items-center justify-center border border-primary bg-primary text-primary-foreground text-xs font-bold">
-                                    1
-                                </button>
-                                {[2, 3].map(n => (
-                                    <button
-                                        key={n}
-                                        className="w-10 h-10 flex items-center justify-center border border-border text-xs font-bold hover:bg-foreground hover:text-background transition-all"
-                                    >
-                                        {n}
-                                    </button>
-                                ))}
-                                <span className="px-2 font-bold text-muted-foreground">...</span>
-                                <button className="w-10 h-10 flex items-center justify-center border border-border text-xs font-bold hover:bg-foreground hover:text-background transition-all">
-                                    12
-                                </button>
-                                <button className="w-10 h-10 flex items-center justify-center border border-border hover:bg-foreground hover:text-background transition-all">
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
                 </section>
             </div>
         </div>

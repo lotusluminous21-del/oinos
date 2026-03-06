@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Verified } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export interface CollectionCardProps {
   title: string;
@@ -24,8 +27,10 @@ export function CollectionCard({
   className,
 }: CollectionCardProps) {
   return (
-    <div
+    <motion.div
       onClick={onClick}
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
       className={cn(
         'group cursor-pointer flex flex-col h-full justify-start',
         className
@@ -56,7 +61,7 @@ export function CollectionCard({
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

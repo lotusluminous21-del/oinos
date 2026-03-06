@@ -27,6 +27,7 @@ import {
     ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IndexedFadeInUp, FadeInUp } from '@/components/ui/motion';
 
 import { useExpertStore, type ChatMessage as StoreChatMessage, type SidebarState } from '@/lib/expert/store';
 import { useProductDetails } from '@/lib/expert/use-product-details';
@@ -405,13 +406,13 @@ export default function ExpertContent() {
          */
         <div className="flex w-full h-[calc(100dvh-64px)] overflow-hidden -mb-16">
             {/* ──────── Desktop Sidebar ──────── */}
-            <aside className="hidden md:flex w-80 flex-shrink-0 border-r border-border flex-col overflow-y-auto custom-scrollbar p-6">
+            <aside data-lenis-prevent="true" className="hidden md:flex w-80 flex-shrink-0 border-r border-border flex-col overflow-y-auto custom-scrollbar p-6">
                 <SidebarContent steps={progressSteps} progress={progress} sidebarState={sidebarState} sidebarRefreshing={sidebarRefreshing} />
             </aside>
 
             {/* ──────── Mobile Sidebar Drawer ──────── */}
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                <SheetContent side="left" className="w-80 p-6 overflow-y-auto">
+                <SheetContent data-lenis-prevent="true" side="left" className="w-80 p-6 overflow-y-auto">
                     <SheetTitle className="sr-only">Project Status</SheetTitle>
                     <SheetDescription className="sr-only">
                         View project progress, technical logs, and recommended coatings
@@ -460,6 +461,7 @@ export default function ExpertContent() {
 
                     <div
                         ref={scrollContainerRef}
+                        data-lenis-prevent="true"
                         className="h-full overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-10 pt-6 pb-4"
                     >
                         {/* ── IDLE: Welcome screen ── */}

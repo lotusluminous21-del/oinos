@@ -10,6 +10,7 @@ import { useCartStore } from "@/store/cart-store"
 import { updateCartItemQuantity, removeCartItem } from "@/app/actions/cart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { IndexedFadeInUp, StaggerContainer, FadeInUp } from "@/components/ui/motion"
 
 export function CartClient({ initialCart }: { initialCart?: Cart | null }) {
     const { cart, setCart, isSyncing, setIsSyncing } = useCartStore();
@@ -62,14 +63,20 @@ export function CartClient({ initialCart }: { initialCart?: Cart | null }) {
     if (!hasItems) {
         return (
             <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 mt-12 md:mt-24 z-10 flex flex-col items-center justify-center min-h-[400px]">
-                <h1 className="text-3xl font-extrabold text-[#0B1221] mb-4">Your Cart is Empty</h1>
-                <p className="text-[#4b5563] mb-8">Looks like you haven't added any products to your cart yet.</p>
-                <Link href="/products">
-                    <Button variant="default" className="rounded-full bg-[#0B1221] text-white hover:bg-black p-6 font-bold h-12 inline-flex items-center gap-2">
-                        <ArrowLeft className="w-5 h-5" />
-                        Continue Shopping
-                    </Button>
-                </Link>
+                <IndexedFadeInUp index={0}>
+                    <h1 className="text-3xl font-extrabold text-[#0B1221] mb-4">Your Cart is Empty</h1>
+                </IndexedFadeInUp>
+                <IndexedFadeInUp index={1}>
+                    <p className="text-[#4b5563] mb-8">Looks like you haven't added any products to your cart yet.</p>
+                </IndexedFadeInUp>
+                <IndexedFadeInUp index={2}>
+                    <Link href="/products">
+                        <Button variant="default" className="rounded-full bg-[#0B1221] text-white hover:bg-black p-6 font-bold h-12 inline-flex items-center gap-2">
+                            <ArrowLeft className="w-5 h-5" />
+                            Continue Shopping
+                        </Button>
+                    </Link>
+                </IndexedFadeInUp>
             </div>
         )
     }
@@ -79,21 +86,23 @@ export function CartClient({ initialCart }: { initialCart?: Cart | null }) {
             {/* Top offset wrapper mapping the standard page */}
             <main className="w-full max-w-[1280px] mx-auto px-4 md:px-8 py-10 md:py-16">
 
-                <h1 className="text-3xl md:text-[40px] font-extrabold text-[#0B1221] tracking-tight mb-8 md:mb-12">
-                    Shopping Cart
-                </h1>
+                <IndexedFadeInUp index={0}>
+                    <h1 className="text-3xl md:text-[40px] font-extrabold text-[#0B1221] tracking-tight mb-8 md:mb-12">
+                        Shopping Cart
+                    </h1>
+                </IndexedFadeInUp>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14">
 
                     {/* LEFT COLUMN: Cart Items */}
                     <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8">
 
-                        <div className={cn("flex flex-col gap-6 md:gap-8 transition-opacity", isSyncing && "opacity-60")}>
+                        <StaggerContainer className={cn("flex flex-col gap-6 md:gap-8 transition-opacity", isSyncing && "opacity-60")}>
                             {displayCart.lines.edges.map(({ node }, index) => {
                                 // Add bottom border to all but last item
                                 const isLast = index === displayCart.lines.edges.length - 1;
                                 return (
-                                    <div key={node.id} className={cn("flex flex-col sm:flex-row gap-6 pb-6 md:pb-8", !isLast && "border-b border-[#E5E7EB]")}>
+                                    <FadeInUp inStaggerGroup key={node.id} className={cn("flex flex-col sm:flex-row gap-6 pb-6 md:pb-8", !isLast && "border-b border-[#E5E7EB]")}>
 
                                         {/* Product Image */}
                                         <div className="sm:w-[120px] h-[120px] shrink-0 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_1px_2px_rgba(0,0,0,0.02)] relative flex items-center justify-center overflow-hidden p-2">
@@ -160,23 +169,23 @@ export function CartClient({ initialCart }: { initialCart?: Cart | null }) {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </FadeInUp>
                                 )
                             })}
-                        </div>
+                        </StaggerContainer>
 
                         {/* Continue Shopping Link */}
-                        <div className="pt-4 mt-2">
+                        <FadeInUp delay={0.2} className="pt-4 mt-2">
                             <Link href="/products" className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#6B7280] hover:text-[#0B1221] transition-colors">
                                 <ArrowLeft className="w-4 h-4" />
                                 Continue Shopping
                             </Link>
-                        </div>
+                        </FadeInUp>
 
                     </div>
 
                     {/* RIGHT COLUMN: Order Summary */}
-                    <div className="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0">
+                    <FadeInUp delay={0.2} className="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0">
                         <div className="bg-[#F8F9FA] border border-[#E5E7EB] rounded-2xl p-6 lg:p-8 sticky top-32 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                             <h2 className="text-[20px] font-bold text-[#0B1221] mb-6">Order Summary</h2>
 
@@ -255,7 +264,7 @@ export function CartClient({ initialCart }: { initialCart?: Cart | null }) {
                             </div>
 
                         </div>
-                    </div>
+                    </FadeInUp>
 
                 </div>
             </main>

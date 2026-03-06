@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { ArrowRight, Clock, Phone, MapPin, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { IndexedFadeInUp, StaggerContainer, FadeInUp, ImageReveal } from '@/components/ui/motion';
 
 export default function ContactClient() {
     return (
@@ -12,18 +13,24 @@ export default function ContactClient() {
             <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 pt-6 md:pt-16 pb-16 md:pb-24">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center min-h-[auto] md:min-h-[500px]">
                     <div className="space-y-8 order-2 lg:order-1 py-4 md:py-8">
-                        <span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-[0.25em]">
-                            Επικοινωνήστε μαζί μας
-                        </span>
-                        <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-[0.9] tracking-tighter text-foreground uppercase">
-                            Επικοινωνία
-                        </h1>
-                        <p className="text-muted-foreground max-w-sm text-base sm:text-lg md:text-xl leading-relaxed font-light">
-                            Είμαστε στη διάθεσή σας για οποιαδήποτε ερώτηση σχετικά με τα προϊόντα, τις υπηρεσίες μας ή για εξειδικευμένη τεχνική υποστήριξη.
-                        </p>
+                        <IndexedFadeInUp index={0}>
+                            <span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-[0.25em]">
+                                Επικοινωνήστε μαζί μας
+                            </span>
+                        </IndexedFadeInUp>
+                        <IndexedFadeInUp index={1}>
+                            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-[0.9] tracking-tighter text-foreground uppercase">
+                                Επικοινωνία
+                            </h1>
+                        </IndexedFadeInUp>
+                        <IndexedFadeInUp index={2}>
+                            <p className="text-muted-foreground max-w-sm text-base sm:text-lg md:text-xl leading-relaxed font-light">
+                                Είμαστε στη διάθεσή σας για οποιαδήποτε ερώτηση σχετικά με τα προϊόντα, τις υπηρεσίες μας ή για εξειδικευμένη τεχνική υποστήριξη.
+                            </p>
+                        </IndexedFadeInUp>
                     </div>
 
-                    <div className="order-1 lg:order-2 h-[300px] sm:h-[400px] md:h-[500px] w-full relative overflow-hidden border border-border group bg-muted/20">
+                    <ImageReveal delay={0.2} className="order-1 lg:order-2 h-[300px] sm:h-[400px] md:h-[500px] w-full relative overflow-hidden border border-border group bg-muted/20">
                         <iframe
                             title="Google Maps Location"
                             className="w-full h-full grayscale opacity-90 transition-opacity duration-300 group-hover:opacity-100 dark:opacity-80 dark:group-hover:opacity-100"
@@ -37,7 +44,7 @@ export default function ContactClient() {
                             <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1.5 text-muted-foreground">Καλαμαριά, Θεσσαλονίκη</p>
                             <p className="text-xs font-mono font-bold uppercase tracking-tight">Από το 1982 // Χρώματα & Δομικά Υλικά</p>
                         </div>
-                    </div>
+                    </ImageReveal>
                 </div>
             </section >
 
@@ -45,13 +52,13 @@ export default function ContactClient() {
             < section className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 py-16 md:py-24" >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-20">
                     {/* Contact Form Module */}
-                    <div className="lg:col-span-2 space-y-12">
-                        <div className="border-b-2 border-foreground pb-4 flex justify-between items-end">
+                    <StaggerContainer className="lg:col-span-2 space-y-12">
+                        <FadeInUp inStaggerGroup className="border-b-2 border-foreground pb-4 flex justify-between items-end">
                             <h3 className="text-sm font-black uppercase tracking-[0.2em]">Φόρμα Επικοινωνίας</h3>
-                        </div>
+                        </FadeInUp>
 
                         <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <FadeInUp inStaggerGroup className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                 <div className="flex flex-col gap-3">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Ονοματεπώνυμο</label>
                                     <input
@@ -68,9 +75,9 @@ export default function ContactClient() {
                                         className="bg-transparent border-0 border-b border-border focus:border-primary focus:ring-0 placeholder:text-muted-foreground/30 text-sm font-bold py-4 px-0 rounded-none transition-all outline-none"
                                     />
                                 </div>
-                            </div>
+                            </FadeInUp>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <FadeInUp inStaggerGroup className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                 <div className="flex flex-col gap-3">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Τηλέφωνο</label>
                                     <input
@@ -92,18 +99,19 @@ export default function ContactClient() {
                                         <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none group-hover:text-primary transition-colors" />
                                     </div>
                                 </div>
-                            </div>
+                            </FadeInUp>
 
-                            <div className="flex flex-col gap-3">
+                            <FadeInUp inStaggerGroup className="flex flex-col gap-3">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Μήνυμα</label>
                                 <textarea
                                     rows={4}
                                     placeholder="ΠΩΣ ΜΠΟΡΟΥΜΕ ΝΑ ΣΑΣ ΒΟΗΘΗΣΟΥΜΕ;"
                                     className="bg-transparent border-0 border-b border-border focus:border-primary focus:ring-0 placeholder:text-muted-foreground/30 text-sm font-bold py-4 px-0 resize-none rounded-none transition-all outline-none uppercase"
                                 />
-                            </div>
+                            </FadeInUp>
 
-                            <Button
+                            <FadeInUp inStaggerGroup>
+                                <Button
                                 type="submit"
                                 size="lg"
                                 className="rounded-none px-12 py-8 text-xs font-black uppercase tracking-[0.3em] flex items-center gap-4 w-fit shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
@@ -111,13 +119,14 @@ export default function ContactClient() {
                                 Αποστολή Μηνύματος
                                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                             </Button>
+                            </FadeInUp>
                         </form>
-                    </div>
+                    </StaggerContainer>
 
                     {/* Sidebar Context */}
-                    <div className="space-y-16">
+                    <StaggerContainer className="space-y-16">
                         {/* Contact Details Block */}
-                        <div className="space-y-6">
+                        <FadeInUp inStaggerGroup className="space-y-6">
                             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
                                 <span className="p-1.5 bg-primary/10 rounded">
                                     <Phone className="w-4 h-4" />
@@ -144,10 +153,10 @@ export default function ContactClient() {
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </FadeInUp>
 
                         {/* Location Section */}
-                        <div className="space-y-8">
+                        <FadeInUp inStaggerGroup className="space-y-8">
                             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
                                 <span className="p-1.5 bg-primary/10 rounded">
                                     <MapPin className="w-4 h-4" />
@@ -171,10 +180,10 @@ export default function ContactClient() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </FadeInUp>
 
                         {/* Operating Hours */}
-                        <div className="space-y-6">
+                        <FadeInUp inStaggerGroup className="space-y-6">
                             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
                                 <span className="p-1.5 bg-primary/10 rounded">
                                     <Clock className="w-4 h-4" />
@@ -198,8 +207,8 @@ export default function ContactClient() {
                                     <span className="font-black text-muted-foreground">Κλειστά</span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </FadeInUp>
+                    </StaggerContainer>
                 </div>
             </section >
         </>

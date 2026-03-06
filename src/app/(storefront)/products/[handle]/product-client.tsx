@@ -9,6 +9,7 @@ import { isCustomPaintProduct, colorSpecToAttributes, type CustomColorSpec } fro
 import { RAL_COLORS } from "@/components/custom-paint/color-system-data"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { ImageReveal, IndexedFadeInUp, StaggerContainer, FadeInUp } from "@/components/ui/motion"
 
 const colorNameToHex: Record<string, string> = {
     // Basic Greek Colors
@@ -261,7 +262,7 @@ export function ProductClient({ product }: { product: Product }) {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
                     {/* Image Display */}
                     <div className="lg:col-span-7 flex flex-col gap-4">
-                        <div className="sticky top-8 h-[400px] sm:h-[500px] lg:h-[calc(100vh-8rem)] max-h-[850px] bg-white border border-slate-200 flex items-center justify-center p-8 lg:p-20 overflow-hidden group">
+                        <ImageReveal delay={0.1} className="sticky top-8 h-[400px] sm:h-[500px] lg:h-[calc(100vh-8rem)] max-h-[850px] bg-white border border-slate-200 flex items-center justify-center p-8 lg:p-20 overflow-hidden group">
                             {heroImage ? (
                                 <img
                                     src={heroImage}
@@ -273,13 +274,13 @@ export function ProductClient({ product }: { product: Product }) {
                                     No Image Available
                                 </div>
                             )}
-                        </div>
+                        </ImageReveal>
                     </div>
 
                     {/* Product Details */}
                     <div className="lg:col-span-5 flex flex-col gap-8">
                         <div className="border-b border-slate-200 pb-8">
-                            <div className="flex justify-between items-start mb-4">
+                            <IndexedFadeInUp index={0} className="flex justify-between items-start mb-4">
                                 <span className="text-[9px] font-black uppercase tracking-[0.25em] bg-[#0f3d3e] text-white px-2.5 py-1" style={{ backgroundColor: '#0f3d3e' }}>
                                     INDUSTRIAL GRADE
                                 </span>
@@ -293,16 +294,20 @@ export function ProductClient({ product }: { product: Product }) {
                                     )} style={isAvailable ? { backgroundColor: '#0f3d3e' } : {}}></span>
                                     {isAvailable ? "IN STOCK" : "OUT OF STOCK"}
                                 </span>
-                            </div>
-                            <h1 className="text-5xl lg:text-6xl font-black tracking-tighter uppercase mb-2 leading-[0.85] text-slate-900" style={{ letterSpacing: '-0.06em' }}>
-                                {formatTitle(product.title)}
-                            </h1>
-                            <p className="text-2xl font-light tracking-tight text-slate-600 mt-4">${Number(price).toFixed(2)}</p>
+                            </IndexedFadeInUp>
+                            <IndexedFadeInUp index={1}>
+                                <h1 className="text-5xl lg:text-6xl font-black tracking-tighter uppercase mb-2 leading-[0.85] text-slate-900" style={{ letterSpacing: '-0.06em' }}>
+                                    {formatTitle(product.title)}
+                                </h1>
+                            </IndexedFadeInUp>
+                            <IndexedFadeInUp index={2}>
+                                <p className="text-2xl font-light tracking-tight text-slate-600 mt-4">${Number(price).toFixed(2)}</p>
+                            </IndexedFadeInUp>
                         </div>
 
                         {/* Performance Specs Grid (Dynamic Metafields) */}
                         {topGridMetafields.length > 0 && (
-                            <div className={cn("grid gap-1",
+                            <IndexedFadeInUp index={3} className={cn("grid gap-1",
                                 topGridMetafields.length === 1 ? "grid-cols-1" :
                                     topGridMetafields.length === 2 ? "grid-cols-2" : "grid-cols-3"
                             )}>
@@ -312,7 +317,7 @@ export function ProductClient({ product }: { product: Product }) {
                                         <p className="text-lg font-black tracking-tight text-slate-900 truncate" title={m?.value}>{m?.value}</p>
                                     </div>
                                 ))}
-                            </div>
+                            </IndexedFadeInUp>
                         )}
 
                         {/* Options/Variants Selectors */}
@@ -321,7 +326,7 @@ export function ProductClient({ product }: { product: Product }) {
                             const isColor = isColorOption(option.name);
 
                             return (
-                                <div key={option.id} className="space-y-4">
+                                <IndexedFadeInUp index={4} key={option.id} className="space-y-4">
                                     <p className="text-[8px] font-black uppercase tracking-[0.25em] text-slate-900">
                                         {isColor ? "Select Finish / RAL" : `Select ${option.name}`}
                                     </p>
@@ -376,22 +381,22 @@ export function ProductClient({ product }: { product: Product }) {
                                             );
                                         })}
                                     </div>
-                                </div>
+                                </IndexedFadeInUp>
                             )
                         })}
 
                         {/* Custom Color Form */}
                         {isCustomPaint && (
-                            <div className="mt-4">
+                            <IndexedFadeInUp index={5} className="mt-4">
                                 <CustomColorForm
                                     onChange={setColorSpec}
                                     showValidation={showColorValidation}
                                 />
-                            </div>
+                            </IndexedFadeInUp>
                         )}
 
                         {/* Actions */}
-                        <div className="flex flex-col gap-3 mt-4">
+                        <IndexedFadeInUp index={6} className="flex flex-col gap-3 mt-4">
                             <button
                                 onClick={handleAddToCart}
                                 disabled={!isAvailable || (isCustomPaint && !colorSpec)}
@@ -409,10 +414,10 @@ export function ProductClient({ product }: { product: Product }) {
                                 <span className="material-symbols-outlined text-[16px]">bookmark</span>
                                 Save for Later
                             </button>
-                        </div>
+                        </IndexedFadeInUp>
 
                         {/* Tech Docs */}
-                        <div className="flex gap-4 mt-6">
+                        <IndexedFadeInUp index={7} className="flex gap-4 mt-6">
                             <a href="#" className="flex items-center gap-2 group text-slate-900 border border-slate-200 px-3 py-1.5 hover:bg-slate-50 transition-colors bg-white">
                                 <span className="material-symbols-outlined text-[12px]">description</span>
                                 <span className="text-[7px] font-black uppercase tracking-widest underline underline-offset-4">SDS (Safety Sheet)</span>
@@ -421,13 +426,13 @@ export function ProductClient({ product }: { product: Product }) {
                                 <span className="material-symbols-outlined text-[12px]">architecture</span>
                                 <span className="text-[7px] font-black uppercase tracking-widest underline underline-offset-4">TDS (Technical Data)</span>
                             </a>
-                        </div>
+                        </IndexedFadeInUp>
                     </div>
                 </div>
 
                 {/* Product Description */}
                 {product.descriptionHtml && (
-                    <section className="mt-32">
+                    <FadeInUp className="mt-32">
                         <div className="flex items-end gap-6 mb-12 text-slate-900">
                             <h3 className="text-5xl font-black uppercase tracking-tighter leading-[0.85]">Product <br />Description</h3>
                             <div className="h-[1px] bg-slate-200 grow mb-2"></div>
@@ -436,12 +441,12 @@ export function ProductClient({ product }: { product: Product }) {
                             className="prose prose-sm prose-slate max-w-none font-medium leading-relaxed text-slate-700 max-w-3xl"
                             dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
                         />
-                    </section>
+                    </FadeInUp>
                 )}
 
                 {/* Technical Specifications Table */}
                 {remainingMetafields.length > 0 && (
-                    <section className="mt-32">
+                    <FadeInUp className="mt-32">
                         <div className="flex items-end gap-6 mb-12 text-slate-900">
                             <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.85]" style={{ letterSpacing: '-0.05em' }}>Technical <br />Specifications</h3>
                             <div className="h-[1px] bg-slate-200 grow mb-2"></div>
@@ -455,7 +460,7 @@ export function ProductClient({ product }: { product: Product }) {
                                 </div>
                             ))}
                         </div>
-                    </section>
+                    </FadeInUp>
                 )}
 
                 {/* Related Equipment (Mock layout from reference) */}
@@ -472,9 +477,9 @@ export function ProductClient({ product }: { product: Product }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-slate-900">
+                    <StaggerContainer staggerDelay={0.15} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-slate-900">
                         {/* Mock Card 1 */}
-                        <div className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
+                        <FadeInUp inStaggerGroup className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
                             <div className="aspect-square bg-slate-50 border border-slate-200 p-6 flex items-center justify-center mb-6 transition-all group-hover:border-[#0f3d3e] grow relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
                                 <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaSggoBdzh3I6xCmrSyAsPEElBPA3yFxb0rC5pfyyC0Ig1T8AiKsp1bi9ksOSQgQEuJyc0CpKm98ZKKktAr03DhdqJL5EFXqGoF14wA7F4-MOyRZPUrsy6KWo4GcjO8CbReYP79p8pcaEBkpYARrx5v-IYXBb4m0tBSJDNR_EuVxtLNrUgItgtKKDVu_BTNoJIywrPge85JQFYXqqfxbGby8Nz_1m3ETGOKuXwJC4SrjHD5ySB0fC61-aQDFYaoMYB85sj-9N0r7k" alt="Surface Primer" className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700 drop-shadow-md" />
@@ -482,10 +487,10 @@ export function ProductClient({ product }: { product: Product }) {
                             <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1.5">Preparation</p>
                             <h4 className="text-[11px] font-black uppercase tracking-tight group-hover:text-[#0f3d3e] transition-colors leading-tight">Surface Primer X-1</h4>
                             <p className="text-[11px] font-medium text-slate-500 mt-1.5">$32.00</p>
-                        </div>
+                        </FadeInUp>
 
                         {/* Mock Card 2 */}
-                        <div className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
+                        <FadeInUp inStaggerGroup className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
                             <div className="aspect-square bg-slate-50 border border-slate-200 p-6 flex items-center justify-center mb-6 transition-all group-hover:border-[#0f3d3e] grow relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
                                 <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBevcDKs8gNKgptC9Rt114vvQDebW_QtgeF2Hfb9kklk14TKOJKy56b_eRS8iP_PteFt0VlHnUnQ7k_gUElxefQZcB-Uz6raZBbLNLrQ3Uf0dWw_AJX3WMAroELMNnvzSd5feVO63moRPRsZ6tcuiu3kO2scn_wxKAYt7o0l32fGTpXjCMf6y5lpCacuyEcrmJGVFIVNkQZXwroSKjVpOoXNr5bgWbGjL23AMTo_NlgZK9Gsy2ZmtM0CbRXURbQy3O6C3oEh_hFC9g" alt="Detailing Brush Set" className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700 drop-shadow-md" />
@@ -493,10 +498,10 @@ export function ProductClient({ product }: { product: Product }) {
                             <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1.5">Tools</p>
                             <h4 className="text-[11px] font-black uppercase tracking-tight group-hover:text-[#0f3d3e] transition-colors leading-tight">Detailing Brush Set</h4>
                             <p className="text-[11px] font-medium text-slate-500 mt-1.5">$18.50</p>
-                        </div>
+                        </FadeInUp>
 
                         {/* Mock Card 3 */}
-                        <div className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
+                        <FadeInUp inStaggerGroup className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
                             <div className="aspect-square bg-slate-50 border border-slate-200 p-6 flex items-center justify-center mb-6 transition-all group-hover:border-[#0f3d3e] grow relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
                                 <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdPTUCE6mrWY1OkDkzZn1jrleWWEmMFl3V40OaYuA4zC1C4tx4gsnrxJXf9O0Yghpg5JEQEBcjzelLxRSZBnqvUWOKmxDuLZxYdq8NrlSTwdU2oN4xE303HGyGlgsRieTmdOqx1oRh3xGyLFqtjdcF780BDAt9E6-N533iy8uSjEu85w7vIndNtwpZv23jd2ZbLRDfyLdcNmJeQIHKmVgclmlvAX506mySIA4nGsdNSOUO3lyd4NHBjz-dyrIgC_lZOC_QhxaFvbE" alt="Pro-Clean Solvent" className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700 drop-shadow-md" />
@@ -504,10 +509,10 @@ export function ProductClient({ product }: { product: Product }) {
                             <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1.5">Cleaning</p>
                             <h4 className="text-[11px] font-black uppercase tracking-tight group-hover:text-[#0f3d3e] transition-colors leading-tight">Pro-Clean Solvent</h4>
                             <p className="text-[11px] font-medium text-slate-500 mt-1.5">$24.00</p>
-                        </div>
+                        </FadeInUp>
 
                         {/* Mock Card 4 */}
-                        <div className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
+                        <FadeInUp inStaggerGroup className="group cursor-pointer flex flex-col h-full bg-white border border-slate-100 p-6 hover:shadow-xl transition-all duration-500">
                             <div className="aspect-square bg-slate-50 border border-slate-200 p-6 flex items-center justify-center mb-6 transition-all group-hover:border-[#0f3d3e] grow relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
                                 <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYQd4crcsc7f4PTez8XIl2d-clv_533S_9V7fp7jOEdmD_GoY37bXg6II93UoU2vsd_bIIxvp_-7xxXRdP2igamUj_2iHBvHI71GS59YOHMz3hc9C4TnGXuridf64R8Fu2CPHHXnZ0sdnxNbYWVacq9UT-FI54YIPxoAuFdIFYVTaZQpa1shhfDhLHTvl-y1SqtmYO2cmSpCBiKZWSFJqZxZUAqEVJEqwxtr2xZf89STJuoNkE8NTQqYIjQW1ZxS0qarlydDxwXTo" alt="Nitrile Safety Pack" className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700 drop-shadow-md" />
@@ -515,8 +520,8 @@ export function ProductClient({ product }: { product: Product }) {
                             <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1.5">Safety</p>
                             <h4 className="text-[11px] font-black uppercase tracking-tight group-hover:text-[#0f3d3e] transition-colors leading-tight">Nitrile Safety Pack</h4>
                             <p className="text-[11px] font-medium text-slate-500 mt-1.5">$15.00</p>
-                        </div>
-                    </div>
+                        </FadeInUp>
+                    </StaggerContainer>
                 </section>
             </div>
         </div>

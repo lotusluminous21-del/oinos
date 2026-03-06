@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 export interface ServiceCardProps {
   icon: React.ReactNode;
@@ -25,22 +28,28 @@ export function ServiceCard({
   };
 
   return (
-    <div
+    <motion.div
       onClick={onClick}
+      whileHover="hover"
       className={cn(
-        'group',
+        'group flex flex-col',
         onClick && 'cursor-pointer',
         className
       )}
     >
-      <div
+      <motion.div
+        variants={{
+            hover: { y: -4, scale: 1.05 }
+        }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
         className={cn(
-          'w-12 h-12 flex items-center mb-4',
-          iconColors[iconColor]
+          'w-12 h-12 flex items-center mb-4 transition-colors duration-300',
+          iconColors[iconColor],
+          'group-hover:text-primary' // The requested color shift on hover
         )}
       >
         {icon}
-      </div>
+      </motion.div>
 
       <h4 className="text-sm font-bold uppercase tracking-wide mb-2 group-hover:text-accent transition-colors">
         {title}
@@ -49,7 +58,7 @@ export function ServiceCard({
       <p className="text-sm leading-relaxed opacity-80">
         {description}
       </p>
-    </div>
+    </motion.div>
   );
 }
 

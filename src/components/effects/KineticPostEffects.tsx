@@ -1,10 +1,17 @@
 'use client';
 
-import { ReactNode, useRef } from 'react';
+import { ReactNode } from 'react';
 import { useLenis } from 'lenis/react';
 import { useMotionValue, useTransform, motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 export function KineticPostEffects({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  
+  // Disable kinetic scroll effects on pages with complex inner scroll areas
+  // to avoid scroll fighting and jarring full-page blur artifacts.
+  const isKineticDisabled = pathname?.startsWith('/categories') || pathname?.startsWith('/expert');
+
   // We'll track the current scroll velocity via a motion value to smoothly map it to a blur amount
   const velocityY = useMotionValue(0);
 
@@ -19,6 +26,10 @@ export function KineticPostEffects({ children }: { children: ReactNode }) {
   // Experiment with the input range (0 to 50 is a typical fast scroll velocity)
   // and the output range (0 to 15 pixels of blur).
   const blurY = useTransform(velocityY, [0, 60], [0, 8]);
+
+  if (isKineticDisabled) {
+    return <>{children}</>;
+  }
 
   return (
     <>
