@@ -43,8 +43,6 @@ env:
     value: "pk_test_51SU68B0O5BKJ7zFDGkFzh4tboG15Z9LRRdLoI5UcERKgXQaUYFG4gWcWL6Q3E3rfR2yrifQir3DC7KgOT8oWG4kT00yTFqG4b6"
   - variable: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
     value: "AIzaSyDEBkHg2TfFprruN-a_AKUAWWtuqjXQcqo"
-
-  # Secrets
   - variable: SHOPIFY_STOREFRONT_ACCESS_TOKEN
     secret: SHOPIFY_STOREFRONT_ACCESS_TOKEN
   - variable: NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN
@@ -74,4 +72,22 @@ env:
   - variable: PYLON_API_KEY
     secret: PYLON_API_KEY
   - variable: PYLON_API_URL
-    value: ""
+    value: "https://pavlicevits.myshopify.com/api" # Placeholder for empty string
+
+secrets:
+  - variable: SHOPIFY_STOREFRONT_ACCESS_TOKEN
+    secret: SHOPIFY_STOREFRONT_ACCESS_TOKEN
+  - variable: STRIPE_SECRET_KEY
+    secret: STRIPE_SECRET_KEY
+  - variable: STRIPE_WEBHOOK_SECRET
+    secret: STRIPE_WEBHOOK_SECRET
+  - variable: GOOGLE_AI_API_KEY
+    secret: GOOGLE_AI_API_KEY
+  - variable: SHOPIFY_ADMIN_ACCESS_TOKEN
+    secret: SHOPIFY_ADMIN_ACCESS_TOKEN
+  - variable: SHOPIFY_WEBHOOK_SECRET
+    secret: SHOPIFY_WEBHOOK_SECRET
+  - variable: SERPER_API_KEY
+    secret: SERPER_API_KEY
+  - variable: PYLON_API_KEY
+    secret: PYLON_API_KEY
