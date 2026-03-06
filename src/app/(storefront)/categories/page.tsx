@@ -1,38 +1,38 @@
-import { getProducts, getCollections, getCollection } from "@/lib/shopify/client";
+import { getProducts, getProductTypes } from "@/lib/shopify/client";
+
+
 import { CategoriesClient } from "./categories-client";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Categories | Pavlicevits",
-    description: "Browse our premium product collections",
+    title: "Shop | Pavlicevits",
+    description: "Browse our premium industrial coating products",
 };
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function CategoriesPage({
     searchParams
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-    // Next 15+ searchParams comes as a Promise!
     const params = await searchParams;
-    const collectionHandle = typeof params.collection === 'string' ? params.collection : 'all';
+    const activeType = typeof params.type === 'string' ? params.type : 'all';
 
-    let fetchedItems = [];
-    const collections = await getCollections();
+    // Fetch all products and product types in parallel
+    const [allProducts, productTypes] = await Promise.all([
+        getProducts(),
+        getProductTypes(),
+    ]);
 
-    if (collectionHandle === 'all') {
-        fetchedItems = await getProducts();
-    } else {
-        const collection = await getCollection(collectionHandle);
-        if (collection && collection.products) {
-            fetchedItems = collection.products.edges.map((e: any) => e.node);
-        }
-    }
+    console.log("FIRST PAGE PRODUCT METAFIELDS:", JSON.stringify(allProducts[0]?.metafields, null, 2));
 
     return (
         <CategoriesClient
-            products={fetchedItems}
-            collections={collections}
-            activeCollection={collectionHandle}
+            products={allProducts}
+            productTypes={productTypes}
+            activeType={activeType}
         />
     );
 }

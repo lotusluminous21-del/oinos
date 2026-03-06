@@ -85,10 +85,6 @@ export function formatColorLabel(spec: CustomColorSpec): string {
     switch (spec.colorSystem) {
         case 'RAL':
             return `RAL ${spec.colorCode.replace(/^RAL\s*/i, '')}`;
-        case 'NCS':
-            return `NCS ${spec.colorCode.replace(/^NCS\s*/i, '')}`;
-        case 'Pantone':
-            return `Pantone ${spec.colorCode.replace(/^Pantone\s*/i, '')}`;
         case 'OEM':
             return `${spec.carMake || 'OEM'} — ${spec.colorCode}`;
         case 'description':

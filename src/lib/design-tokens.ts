@@ -13,38 +13,38 @@ export const colors = {
     dark: 'hsl(234, 35%, 8%)',
     foreground: 'hsl(0, 0%, 100%)',
   },
-  
-  // Accent (Dark Teal)
+
+  // Accent (Dark Petrol Green #165c52)
   accent: {
-    DEFAULT: 'hsl(175, 60%, 35%)',
-    light: 'hsl(175, 50%, 45%)',
-    dark: 'hsl(175, 70%, 25%)',
+    DEFAULT: 'hsl(171, 61%, 22%)',
+    light: 'hsl(171, 55%, 30%)',
+    dark: 'hsl(171, 67%, 18%)',
     foreground: 'hsl(0, 0%, 100%)',
   },
-  
+
   // Semantic
   background: 'hsl(0, 0%, 100%)',
   foreground: 'hsl(234, 30%, 14%)',
-  
+
   card: {
     DEFAULT: 'hsl(0, 0%, 100%)',
     foreground: 'hsl(234, 30%, 14%)',
   },
-  
+
   secondary: {
     DEFAULT: 'hsl(220, 14%, 96%)',
     foreground: 'hsl(234, 30%, 14%)',
   },
-  
+
   muted: {
     DEFAULT: 'hsl(220, 14%, 96%)',
     foreground: 'hsl(220, 9%, 46%)',
   },
-  
+
   border: 'hsl(220, 13%, 91%)',
   input: 'hsl(220, 13%, 91%)',
   ring: 'hsl(234, 30%, 14%)',
-  
+
   // Status colors
   destructive: {
     DEFAULT: 'hsl(0, 84%, 60%)',
@@ -70,7 +70,7 @@ export const typography = {
     mono: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
     display: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
-  
+
   fontSize: {
     xs: '0.75rem',      // 12px
     sm: '0.875rem',     // 14px
@@ -83,7 +83,7 @@ export const typography = {
     '5xl': '3rem',      // 48px
     '6xl': '3.75rem',   // 60px
   },
-  
+
   fontWeight: {
     normal: 400,
     medium: 500,
@@ -91,7 +91,7 @@ export const typography = {
     bold: 700,
     extrabold: 800,
   },
-  
+
   lineHeight: {
     none: 1,
     tight: 1.25,
@@ -99,7 +99,7 @@ export const typography = {
     normal: 1.5,
     relaxed: 1.625,
   },
-  
+
   letterSpacing: {
     tighter: '-0.05em',
     tight: '-0.025em',
@@ -202,9 +202,9 @@ export const statusColors = {
     border: 'hsl(38, 92%, 50%, 0.3)',
   },
   new: {
-    bg: 'hsl(175, 60%, 35%)',
+    bg: 'hsl(171, 61%, 22%)',
     text: 'hsl(0, 0%, 100%)',
-    border: 'hsl(175, 60%, 35%)',
+    border: 'hsl(171, 61%, 22%)',
   },
 } as const;
 

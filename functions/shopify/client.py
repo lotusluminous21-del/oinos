@@ -687,11 +687,11 @@ class ShopifyClient:
             {"name": "Μπεκ Ψεκασμού / Spray Nozzle", "key": "spray_nozzle_type", "type": "single_line_text_field",
              "description": "Recommended spray nozzle type/size", "pin": False},
             # List fields
-            {"name": "Κατάλληλες Επιφάνειες / Surfaces", "key": "surfaces", "type": "list.single_line_text_field",
+            {"name": "Κατάλληλες Επιφάνειες / Surfaces", "key": "surfaces", "type": "json",
              "description": "Compatible surfaces", "pin": True},
-            {"name": "Ειδικές Ιδιότητες / Special Properties", "key": "special_properties", "type": "list.single_line_text_field",
+            {"name": "Ειδικές Ιδιότητες / Special Properties", "key": "special_properties", "type": "json",
              "description": "Special product properties (e.g. Anti-corrosive, UV Resistant)", "pin": True},
-            {"name": "Μέθοδος Εφαρμογής / Application Method", "key": "application_method", "type": "list.single_line_text_field",
+            {"name": "Μέθοδος Εφαρμογής / Application Method", "key": "application_method", "type": "json",
              "description": "Application methods (e.g. Spray, Brush, Roller)", "pin": True},
         ]
 
@@ -720,7 +720,10 @@ class ShopifyClient:
                     "type": defn["type"],
                     "description": defn.get("description", ""),
                     "ownerType": "PRODUCT",
-                    "pin": defn.get("pin", True)
+                    "pin": defn.get("pin", True),
+                    "access": {
+                        "storefront": "PUBLIC_READ"
+                    }
                 }
             }
 
@@ -732,17 +735,85 @@ class ShopifyClient:
             errors = data.get("userErrors", [])
 
             if errors:
-                # "Metafield definition already exists" is expected and safe to ignore
-                for err in errors:
-                    if "already exists" in err.get("message", "").lower() or "taken" in err.get("message", "").lower():
-                        continue
-                    logger.warning(f"Metafield definition error for '{defn['key']}': {err['message']}")
+                # "Metafield definition already exists" is expected — update access
+                already_exists = any(
+                    "already exists" in err.get("message", "").lower() or "taken" in err.get("message", "").lower()
+                    for err in errors
+                )
+                if already_exists:
+                    # Update existing definition to ensure Storefront access is enabled
+                    self._update_metafield_access(defn["key"])
+                else:
+                    for err in errors:
+                        logger.warning(f"Metafield definition error for '{defn['key']}': {err['message']}")
             elif data.get("createdDefinition"):
                 created += 1
                 logger.info(f"Created metafield definition: {defn['name']} ({defn['key']})")
 
         logger.info(f"Metafield definitions bootstrap: {created} new, {len(DEFINITIONS) - created} already existed")
         return created
+
+    def _update_metafield_access(self, key: str):
+        """Updates an existing metafield definition to enable Storefront API public read access."""
+        # First, find the definition ID
+        find_query = """
+        query($namespace: String!, $key: String!, $ownerType: MetafieldOwnerType!) {
+            metafieldDefinitions(first: 1, namespace: $namespace, key: $key, ownerType: $ownerType) {
+                edges {
+                    node {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+        """
+        find_result = self._graphql_request(find_query, {
+            "namespace": "pavlicevits",
+            "key": key,
+            "ownerType": "PRODUCT"
+        })
+        if not find_result:
+            return
+
+        edges = find_result.get("data", {}).get("metafieldDefinitions", {}).get("edges", [])
+        if not edges:
+            return
+
+        def_id = edges[0]["node"]["id"]
+
+        update_mutation = """
+        mutation($definition: MetafieldDefinitionUpdateInput!) {
+            metafieldDefinitionUpdate(definition: $definition) {
+                updatedDefinition {
+                    id
+                    name
+                }
+                userErrors {
+                    field
+                    message
+                }
+            }
+        }
+        """
+        update_result = self._graphql_request(update_mutation, {
+            "definition": {
+                "key": key,
+                "namespace": "pavlicevits",
+                "ownerType": "PRODUCT",
+                "access": {
+                    "storefront": "PUBLIC_READ"
+                }
+            }
+        })
+        if update_result:
+            update_data = update_result.get("data", {}).get("metafieldDefinitionUpdate", {})
+            update_errors = update_data.get("userErrors", [])
+            if update_errors:
+                for err in update_errors:
+                    logger.warning(f"Failed to update access for '{key}': {err.get('message', '')}")
+            elif update_data.get("updatedDefinition"):
+                logger.info(f"Updated Storefront access for metafield: {key}")
 
     def search_technical_products(
         self, 

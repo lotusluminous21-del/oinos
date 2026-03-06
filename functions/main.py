@@ -248,9 +248,14 @@ def expert_session_trigger(event: firestore_fn.Event[firestore_fn.Change[firesto
         # Build history from all messages EXCEPT the latest user one
         history = []
         for msg in after_messages[:-1]:
-            history.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+            h = {"role": msg.get("role", "user"), "content": msg.get("content", "")}
+            # Carry through image_url for multimodal history
+            if msg.get("image_url"):
+                h["image_url"] = msg["image_url"]
+            history.append(h)
                 
         user_message_content = last_message.get("content", "")
+        user_image_url = last_message.get("image_url")
         
         # 2. Process chat — pass session_id + user_id for structured log correlation
         result = agent.process_chat(
@@ -260,6 +265,7 @@ def expert_session_trigger(event: firestore_fn.Event[firestore_fn.Change[firesto
             session_id=session_id,
             user_id=user_id,
             session_data=after_data,
+            image_url=user_image_url,
         )
         
         from firebase_admin import firestore
@@ -385,6 +391,22 @@ def save_expert_project(req: https_fn.CallableRequest) -> dict:
         return save_handler(req)
     except Exception as e:
         print(f"Error in save_expert_project wrapper: {e}")
+        return {"error": str(e)}
+
+# --- 8. Photo Color Analysis Callable ---
+@https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_512)
+def analyze_photo_color(req: https_fn.CallableRequest) -> dict:
+    """Analyze a photo to extract dominant colors and find closest RAL matches."""
+    try:
+        image_base64 = req.data.get("image_base64", "")
+        n_colors = req.data.get("n_colors", 5)
+        surface_type = req.data.get("surface_type", "matte")
+        if not image_base64:
+            return {"error": "No image_base64 provided"}
+        from expert_v3.color_extract import analyze_photo_from_base64
+        return analyze_photo_from_base64(image_base64, n_colors, surface_type)
+    except Exception as e:
+        main_logger.error(f"analyze_photo_color CRASHED: {e}", exc_info=True)
         return {"error": str(e)}
 
 # Payment Modules (REMOVED)

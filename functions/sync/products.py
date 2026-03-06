@@ -116,9 +116,9 @@ def _build_metafields(ai: dict) -> list:
         _add("spray_nozzle_type", specs.get("spray_nozzle_type"))
 
         # List-value fields
-        _add("surfaces", specs.get("surface_suitability"), "list.single_line_text_field")
-        _add("special_properties", specs.get("special_properties"), "list.single_line_text_field")
-        _add("application_method", specs.get("application_method"), "list.single_line_text_field")
+        _add("surfaces", specs.get("surface_suitability"), "json")
+        _add("special_properties", specs.get("special_properties"), "json")
+        _add("application_method", specs.get("application_method"), "json")
 
     return metafields
 

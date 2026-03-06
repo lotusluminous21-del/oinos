@@ -9,6 +9,7 @@ import {
     Check,
     Car,
     Search,
+    Camera,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -23,6 +24,7 @@ import {
     type CustomColorSpec,
     computePrecision,
 } from './custom-paint-helpers';
+import { PhotoColorUpload } from './photo-color-upload';
 
 interface CustomColorFormProps {
     /** Called whenever the form state changes with a valid or partial spec */
@@ -41,6 +43,8 @@ export function CustomColorForm({ onChange, showValidation = false, compact = fa
     const [customerNotes, setCustomerNotes] = useState('');
     const [ralSearch, setRalSearch] = useState('');
     const [showRalPicker, setShowRalPicker] = useState(false);
+    const [showAllRal, setShowAllRal] = useState(false);
+    const [photoMode, setPhotoMode] = useState(false);
 
     const systemData = useMemo(() =>
         selectedSystem ? COLOR_SYSTEMS.find(s => s.id === selectedSystem) : null
@@ -57,12 +61,15 @@ export function CustomColorForm({ onChange, showValidation = false, compact = fa
     }, [selectedSystem, colorCode]);
 
     const filteredRALColors = useMemo(() => {
-        if (!ralSearch) return RAL_COLORS.slice(0, 20);
+        if (!ralSearch && !showAllRal) return RAL_COLORS.slice(0, 30);
+        if (!ralSearch && showAllRal) return RAL_COLORS;
         const q = ralSearch.toLowerCase();
         return RAL_COLORS.filter(c =>
-            c.code.includes(q) || c.name.toLowerCase().includes(q)
-        ).slice(0, 20);
-    }, [ralSearch]);
+            c.code.includes(q) ||
+            c.name.toLowerCase().includes(q) ||
+            c.nameEn.toLowerCase().includes(q)
+        ).slice(0, showAllRal ? 216 : 30);
+    }, [ralSearch, showAllRal]);
 
     const precision = useMemo(() => {
         if (!selectedSystem) return 'approximate' as const;
@@ -107,6 +114,7 @@ export function CustomColorForm({ onChange, showValidation = false, compact = fa
         setCarMake('');
         setCarYear('');
         setShowRalPicker(false);
+        setPhotoMode(false);
         emitChange(sys, '', '', '', customerNotes);
     };
 
@@ -186,8 +194,51 @@ export function CustomColorForm({ onChange, showValidation = false, compact = fa
                             )}
                         </button>
                     ))}
+                    {/* 📷 Photo button */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSelectedSystem(null);
+                            setPhotoMode(true);
+                            setColorCode('');
+                        }}
+                        className={cn(
+                            'flex items-center gap-2 px-3 py-2.5 rounded-md border text-left transition-all text-sm',
+                            photoMode
+                                ? 'border-accent bg-accent/10 text-accent font-bold ring-1 ring-accent/30'
+                                : 'border-border bg-card text-foreground hover:border-accent/40 hover:bg-accent/5'
+                        )}
+                    >
+                        <Camera className="w-4 h-4" />
+                        <div className="min-w-0">
+                            <div className="font-bold text-xs truncate">Φωτογραφία</div>
+                            {!compact && (
+                                <div className="text-[10px] text-muted-foreground truncate">Ανάλυση χρώματος εικόνας</div>
+                            )}
+                        </div>
+                        {photoMode && (
+                            <Check className="w-3.5 h-3.5 ml-auto shrink-0 text-accent" />
+                        )}
+                    </button>
                 </div>
             </div>
+
+            {/* Photo Mode: Upload component */}
+            {photoMode && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                    <PhotoColorUpload
+                        compact={compact}
+                        onColorSelected={(ralCode, ralName, ralHex, deltaE) => {
+                            // Auto-switch to RAL system with matched code
+                            setPhotoMode(false);
+                            setSelectedSystem('RAL');
+                            const fullCode = `RAL ${ralCode}`;
+                            setColorCode(fullCode);
+                            emitChange('RAL', fullCode, '', '', customerNotes);
+                        }}
+                    />
+                </div>
+            )}
 
             {/* Step 2: Color Code Input (contextual) */}
             {selectedSystem && (
@@ -314,26 +365,44 @@ export function CustomColorForm({ onChange, showValidation = false, compact = fa
                                     </button>
                                 ))}
                             </div>
+                            {/* Show All toggle */}
+                            {!ralSearch && (
+                                <div className="px-2 pb-2 border-t border-border pt-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAllRal(!showAllRal)}
+                                        className="w-full text-[10px] font-bold text-accent uppercase tracking-widest hover:underline transition-colors py-1"
+                                    >
+                                        {showAllRal ? 'Εμφάνιση λιγότερων' : `Δείτε όλα τα χρώματα RAL (${RAL_COLORS.length})`}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Live Color Preview (RAL only) */}
                     {selectedSystem === 'RAL' && ralHex && (
-                        <div className="flex items-center gap-3 p-3 rounded-md bg-card border border-border animate-in fade-in duration-200">
-                            <div
-                                className="w-10 h-10 rounded-md border-2 border-border shadow-sm"
-                                style={{ backgroundColor: ralHex }}
-                            />
-                            <div>
-                                <p className="text-sm font-bold text-foreground">
-                                    RAL {colorCode.replace(/^RAL\s*/i, '')}
-                                </p>
-                                {ralName && (
-                                    <p className="text-xs text-muted-foreground">{ralName}</p>
-                                )}
+                        <>
+                            <div className="flex items-center gap-3 p-3 rounded-md bg-card border border-border animate-in fade-in duration-200">
+                                <div
+                                    className="w-10 h-10 rounded-md border-2 border-border shadow-sm"
+                                    style={{ backgroundColor: ralHex }}
+                                />
+                                <div>
+                                    <p className="text-sm font-bold text-foreground">
+                                        RAL {colorCode.replace(/^RAL\s*/i, '')}
+                                    </p>
+                                    {ralName && (
+                                        <p className="text-xs text-muted-foreground">{ralName}</p>
+                                    )}
+                                </div>
+                                <Check className="ml-auto w-4 h-4 text-green-500" />
                             </div>
-                            <Check className="ml-auto w-4 h-4 text-green-500" />
-                        </div>
+                            {/* Disclaimer: on-screen approximation */}
+                            <p className="text-[10px] text-amber-600 dark:text-amber-400 italic mt-1">
+                                ⚠️ Τα χρώματα στην οθόνη είναι κατά προσέγγιση. Η ανάμιξη γίνεται βάσει του επίσημου κωδικού <strong>RAL {colorCode.replace(/^RAL\s*/i, '')}</strong>.
+                            </p>
+                        </>
                     )}
 
                     {/* Precision Warning for description mode */}

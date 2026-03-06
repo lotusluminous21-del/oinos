@@ -1,4 +1,6 @@
 import { getProducts } from "@/lib/shopify/client";
+
+export const dynamic = 'force-dynamic';
 import { SearchClient } from "./search-client";
 import { Metadata } from "next";
 

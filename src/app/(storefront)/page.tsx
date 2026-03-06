@@ -1,6 +1,8 @@
 import { getProducts, getProductTypes } from "@/lib/shopify/client";
 import HomeContent from "./home-content";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Page() {
     // Fetch real data from Shopify
     const [products, categories] = await Promise.all([

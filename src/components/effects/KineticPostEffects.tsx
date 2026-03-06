@@ -1,0 +1,59 @@
+'use client';
+
+import { ReactNode, useRef } from 'react';
+import { useLenis } from 'lenis/react';
+import { useMotionValue, useTransform, motion } from 'framer-motion';
+
+export function KineticPostEffects({ children }: { children: ReactNode }) {
+  // We'll track the current scroll velocity via a motion value to smoothly map it to a blur amount
+  const velocityY = useMotionValue(0);
+
+  // Hook into Lenis frame updates
+  useLenis((lenis) => {
+    // lenis.velocity is the current scroll velocity
+    // We update our motion value with it
+    velocityY.set(Math.abs(lenis.velocity));
+  });
+
+  // Map the absolute velocity to a blur value (stdDeviation on Y axis)
+  // Experiment with the input range (0 to 50 is a typical fast scroll velocity)
+  // and the output range (0 to 15 pixels of blur).
+  const blurY = useTransform(velocityY, [0, 60], [0, 8]);
+
+  return (
+    <>
+      <svg
+        style={{ width: 0, height: 0, position: 'absolute', pointerEvents: 'none' }}
+        aria-hidden="true"
+      >
+        <defs>
+          <filter id="kinetic-motion-blur">
+            {/* 
+              feGaussianBlur stdDeviation can take two values: x and y.
+              We keep x at 0 and map y to our motion-blur value.
+            */}
+            <motion.feGaussianBlur 
+              in="SourceGraphic" 
+              // We typecast as any because framer-motion might complain about SVG props
+              stdDeviation={useTransform(blurY, (val) => `0, ${val}`)}
+            />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* 
+        Wrap the content in a container that applies the filter.
+        will-change: filter is crucial for performance.
+      */}
+      <motion.div
+        style={{
+          filter: "url(#kinetic-motion-blur)",
+          willChange: "filter",
+        }}
+        className="w-full relative min-h-screen z-0"
+      >
+        {children}
+      </motion.div>
+    </>
+  );
+}

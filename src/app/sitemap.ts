@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next';
 import { getCollections, getProducts } from '@/lib/shopify/client';
+
+export const dynamic = 'force-dynamic';
 import { env } from '@/lib/env';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

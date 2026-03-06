@@ -317,3 +317,227 @@ def search_products(
         }]
 
 
+def search_products_batch(searches: list[dict]) -> list[dict]:
+    """
+    Search for multiple product categories in a single call.
+
+    Use this when the customer needs a complete painting solution
+    involving multiple steps (e.g. cleaner + primer + paint + varnish).
+    Instead of calling search_products multiple times, bundle all searches here.
+
+    Args:
+        searches: A list of search specifications. Each item is a dict with
+                  the same keys as search_products: category, chemical_base,
+                  surface, finish, sequence_step, application_method,
+                  variant_title, etc. Include a 'label' key to name each search
+                  (e.g. "Καθαριστικό", "Αστάρι", "Βασικό Χρώμα").
+
+    Returns:
+        A list of result groups. Each group has:
+          - label: what was searched for
+          - results: list of matching products (same format as search_products)
+    """
+    if not searches or not isinstance(searches, list):
+        return [{"label": "error", "results": [{"status": "ERROR", "message": "searches must be a non-empty list of dicts"}]}]
+
+    logger.info(f"search_products_batch: executing {len(searches)} searches")
+
+    all_groups = []
+    for i, spec in enumerate(searches):
+        if not isinstance(spec, dict):
+            all_groups.append({"label": f"search_{i+1}", "results": [{"status": "ERROR", "message": "Each search must be a dict"}]})
+            continue
+
+        label = spec.pop("label", spec.get("category") or spec.get("sequence_step") or f"search_{i+1}")
+
+        # Delegate to the existing search_products logic
+        results = search_products(**{k: v for k, v in spec.items() if v is not None})
+
+        all_groups.append({
+            "label": label,
+            "results": results
+        })
+
+        logger.info(f"search_products_batch: '{label}' → {len(results)} result(s)")
+
+    return all_groups
+
+
+# ── Handle → product mapping for custom paint ─────────────────────────────
+_CUSTOM_HANDLE_MAP = {
+    "Σπρέι":          "custom-spray-paint",
+    "Πιστόλι Βαφής":  "custom-bucket-paint",
+    "Πινέλο":         "custom-bucket-paint",
+    "Ρολό":           "custom-bucket-paint",
+    "Touch-up":       "custom-touchup-kit",
+}
+
+
+def search_custom_paint(
+    application_method: str,
+    finish: Optional[str] = None,
+    color_code: Optional[str] = None,
+    color_system: Optional[str] = None,
+) -> dict:
+    """
+    Find the correct CUSTOM paint product for a customer who needs a color
+    mixed to their exact specification (RAL, OEM, NCS, Pantone, or description).
+
+    Call this INSTEAD OF search_products when the customer needs a specific
+    color that won't exist as a ready-made variant. This applies ONLY to
+    base paints (sequence_step = "Βασικό Χρώμα").
+
+    For primers, varnishes, and other categories, use search_products as usual.
+
+    Args:
+        application_method: How the customer will apply the paint.
+            One of: "Σπρέι", "Πιστόλι Βαφής", "Πινέλο", "Ρολό", "Touch-up"
+        finish: Desired finish, e.g. "Ματ", "Σατινέ", "Γυαλιστερό",
+            "2K Γυαλιστερό (Πολυουρεθάνης)", "Σαγρέ/Ανάγλυφο".
+            If omitted, all finish variants are returned.
+        color_code: The customer's color code, e.g. "RAL 9005", "VW LY9B",
+            "Pantone 2758 C", or a free-text description like "σκούρο μπλε".
+        color_system: The color standard being used.
+            One of: "RAL", "OEM", "NCS", "Pantone", "description"
+    """
+    handle = _CUSTOM_HANDLE_MAP.get(application_method)
+    if not handle:
+        return {
+            "status": "ERROR",
+            "message": f"Unknown application_method '{application_method}'. "
+                       f"Valid options: {', '.join(_CUSTOM_HANDLE_MAP.keys())}",
+        }
+
+    logger.info(
+        "search_custom_paint executing",
+        application_method=application_method,
+        handle=handle,
+        finish=finish,
+        color_code=color_code,
+        color_system=color_system,
+    )
+
+    client = ShopifyClient()
+
+    try:
+        # Search by handle — Shopify supports handle: filter
+        results = client.search_products_by_query(f"handle:{handle}", limit=5)
+
+        if not results:
+            return {
+                "status": "NO_RESULTS",
+                "message": f"Custom paint product '{handle}' not found in store.",
+            }
+
+        # There should be exactly one product per handle
+        product = results[0]
+        m = product["metafields"]
+
+        # Build full variant list so the LLM can pick the right size+finish
+        all_variants = [
+            {
+                "id": v["id"],
+                "title": v.get("title", ""),
+                "sku": v.get("sku", ""),
+                "price": v.get("price", "0"),
+            }
+            for v in product.get("variants", [])
+        ]
+
+        # If a finish was specified, try to highlight matching variants
+        matching_variants = all_variants
+        if finish:
+            finish_lower = finish.lower()
+            filtered = [v for v in all_variants if finish_lower in v["title"].lower()]
+            if filtered:
+                matching_variants = filtered
+
+        result = {
+            "title": product["title"],
+            "handle": product["handle"],
+            "brand": m.get("brand"),
+            "is_custom_paint": True,
+            "sequence_step": _parse_list_metafield(m.get("sequence_step", "")),
+            "surfaces": _parse_list_metafield(m.get("surfaces", "[]")),
+            "application_method": _parse_list_metafield(m.get("application_method", "[]")),
+            "matching_variants": matching_variants,
+            "all_variants": all_variants,
+            "custom_color_info": {
+                "color_system": color_system or "unknown",
+                "color_code": color_code or "unknown",
+                "notes": "Εξατομικευμένη μίξη βάσει κωδικού πελάτη.",
+            },
+            "instruction": (
+                "This is a CUSTOM PAINT product. The customer's color will be mixed to order. "
+                "Select the variant that matches the desired finish and size. "
+                "Include is_custom_paint=true and custom_color_info in your recommendation."
+            ),
+        }
+
+        logger.info(
+            "search_custom_paint → found product",
+            handle=handle,
+            total_variants=len(all_variants),
+            matching_variants=len(matching_variants),
+        )
+        return result
+
+    except Exception as e:
+        logger.error("search_custom_paint failed", exc_info=True)
+        return {
+            "status": "ERROR",
+            "message": str(e),
+        }
+
+
+def find_closest_standard_color(hex_code: str) -> dict:
+    """
+    Find the closest RAL Classic color to an arbitrary hex code.
+
+    Uses CIELAB color space and Delta-E CIE2000 for perceptually accurate matching.
+    Call this when a customer provides a hex or RGB color code and wants to know
+    the nearest standard industrial paint color.
+
+    Args:
+        hex_code: Hex color string, e.g. "#3A5F0B" or "3A5F0B"
+
+    Returns:
+        Dict with: ral_code, ral_name, hex, delta_e, confidence (high/medium/low), input_hex
+    """
+    from expert_v3.color_utils import find_closest_ral
+    logger.info("find_closest_standard_color called", hex_code=hex_code)
+    result = find_closest_ral(hex_code)
+    logger.info("find_closest_standard_color result", result=result)
+    return result
+
+
+def extract_colors_from_photo(image_base64: str) -> dict:
+    """
+    Extract the dominant colors from a customer photo and find the closest RAL match for each.
+
+    Uses Pillow's median-cut quantization for accurate pixel-level color extraction
+    (NOT LLM estimation). Returns 5 dominant colors with hex codes, percentages,
+    and closest RAL matches with confidence levels.
+
+    IMPORTANT: Never estimate hex codes yourself — always use this tool for photo analysis.
+
+    Args:
+        image_base64: Base64-encoded image string (JPEG or PNG). May include data URI prefix.
+
+    Returns:
+        Dict with: dominant_colors, ral_matches, disclaimer
+    """
+    from expert_v3.color_extract import analyze_photo_from_base64
+    logger.info("extract_colors_from_photo called")
+    try:
+        result = analyze_photo_from_base64(image_base64)
+        logger.info("extract_colors_from_photo result", n_colors=len(result.get("dominant_colors", [])))
+        return result
+    except Exception as e:
+        logger.error("extract_colors_from_photo failed", error=str(e))
+        return {
+            "error": str(e),
+            "instruction": "Η ανάλυση φωτογραφίας απέτυχε. Ζήτα από τον πελάτη να δοκιμάσει με άλλη φωτογραφία ή να δώσει κωδικό χρώματος."
+        }
+
+

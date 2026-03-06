@@ -16,10 +16,10 @@ const footerColumns: FooterColumn[] = [
     {
         title: "Company",
         links: [
-            { label: "Our Story", href: "#" },
+            { label: "Our Story", href: "/about" },
             { label: "Certifications", href: "#" },
             { label: "Technical Data", href: "#" },
-            { label: "Contact", href: "#" }
+            { label: "Contact", href: "/contact" }
         ]
     },
     {
@@ -41,7 +41,7 @@ export default function StorefrontLayout({
         <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background text-foreground font-sans bg-[radial-gradient(circle,#00000010_1px,transparent_1px)] bg-[size:40px_40px]">
             <div className="flex h-full grow flex-col">
                 <Header />
-                <main className="flex-1 w-full flex flex-col gap-12 md:gap-24 mb-16">
+                <main className="flex-1 w-full flex flex-col mb-16">
                     {children}
                 </main>
                 <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 pb-12 mt-24 border-t border-border pt-12">

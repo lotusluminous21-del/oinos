@@ -5,6 +5,8 @@ const productFragment = `
   handle
   description
   descriptionHtml
+  productType
+  vendor
   featuredImage {
     url
     altText
@@ -67,13 +69,16 @@ const productFragment = `
     }
   }
   metafields(identifiers: [
-    {namespace: "custom", key: "finish"},
-    {namespace: "custom", key: "coverage"},
-    {namespace: "custom", key: "drying_time"},
-    {namespace: "custom", key: "environment"},
-    {namespace: "custom", key: "surfaces"},
-    {namespace: "custom", key: "application"},
-    {namespace: "custom", key: "features"}
+    {namespace: "pavlicevits", key: "finish"},
+    {namespace: "pavlicevits", key: "coverage"},
+    {namespace: "pavlicevits", key: "drying_time"},
+    {namespace: "pavlicevits", key: "environment"},
+    {namespace: "pavlicevits", key: "surfaces"},
+    {namespace: "pavlicevits", key: "application_method"},
+    {namespace: "pavlicevits", key: "features"},
+    {namespace: "pavlicevits", key: "chemical_base"},
+    {namespace: "pavlicevits", key: "category"},
+    {namespace: "pavlicevits", key: "sequence_step"}
   ]) {
     id
     key

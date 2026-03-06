@@ -1,0 +1,207 @@
+'use client';
+
+import React from 'react';
+import Image from 'next/image';
+import { ArrowRight, Clock, Phone, MapPin, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+export default function ContactClient() {
+    return (
+        <>
+            {/* ───── Hero Section ───── */}
+            <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 pt-6 md:pt-16 pb-16 md:pb-24">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center min-h-[auto] md:min-h-[500px]">
+                    <div className="space-y-8 order-2 lg:order-1 py-4 md:py-8">
+                        <span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-[0.25em]">
+                            Επικοινωνήστε μαζί μας
+                        </span>
+                        <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-[0.9] tracking-tighter text-foreground uppercase">
+                            Επικοινωνία
+                        </h1>
+                        <p className="text-muted-foreground max-w-sm text-base sm:text-lg md:text-xl leading-relaxed font-light">
+                            Είμαστε στη διάθεσή σας για οποιαδήποτε ερώτηση σχετικά με τα προϊόντα, τις υπηρεσίες μας ή για εξειδικευμένη τεχνική υποστήριξη.
+                        </p>
+                    </div>
+
+                    <div className="order-1 lg:order-2 h-[300px] sm:h-[400px] md:h-[500px] w-full relative overflow-hidden border border-border group bg-muted/20">
+                        <iframe
+                            title="Google Maps Location"
+                            className="w-full h-full grayscale opacity-90 transition-opacity duration-300 group-hover:opacity-100 dark:opacity-80 dark:group-hover:opacity-100"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            allowFullScreen
+                            referrerPolicy="no-referrer-when-downgrade"
+                            src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent("Λεωφ. Εθνικής Αντιστάσεως 66, Καλαμαριά, 551 33, Θεσσαλονίκη")}`}
+                        ></iframe>
+                        <div className="absolute bottom-6 left-6 bg-background p-5 border border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] pointer-events-none">
+                            <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1.5 text-muted-foreground">Καλαμαριά, Θεσσαλονίκη</p>
+                            <p className="text-xs font-mono font-bold uppercase tracking-tight">Από το 1982 // Χρώματα & Δομικά Υλικά</p>
+                        </div>
+                    </div>
+                </div>
+            </section >
+
+            {/* ───── Form & Locations Grid ───── */}
+            < section className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 py-16 md:py-24" >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-20">
+                    {/* Contact Form Module */}
+                    <div className="lg:col-span-2 space-y-12">
+                        <div className="border-b-2 border-foreground pb-4 flex justify-between items-end">
+                            <h3 className="text-sm font-black uppercase tracking-[0.2em]">Φόρμα Επικοινωνίας</h3>
+                        </div>
+
+                        <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="flex flex-col gap-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Ονοματεπώνυμο</label>
+                                    <input
+                                        type="text"
+                                        placeholder="ΤΟ ΟΝΟΜΑ ΣΑΣ"
+                                        className="bg-transparent border-0 border-b border-border focus:border-primary focus:ring-0 placeholder:text-muted-foreground/30 text-sm font-bold py-4 px-0 rounded-none transition-all outline-none"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Email</label>
+                                    <input
+                                        type="email"
+                                        placeholder="ΤΟ EMAIL ΣΑΣ"
+                                        className="bg-transparent border-0 border-b border-border focus:border-primary focus:ring-0 placeholder:text-muted-foreground/30 text-sm font-bold py-4 px-0 rounded-none transition-all outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="flex flex-col gap-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Τηλέφωνο</label>
+                                    <input
+                                        type="tel"
+                                        placeholder="ΤΟ ΤΗΛΕΦΩΝΟ ΣΑΣ"
+                                        className="bg-transparent border-0 border-b border-border focus:border-primary focus:ring-0 placeholder:text-muted-foreground/30 text-sm font-bold py-4 px-0 rounded-none transition-all outline-none"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-3 relative">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Κατηγορία Ενδιαφέροντος</label>
+                                    <div className="relative">
+                                        <select className="w-full bg-transparent border-0 border-b border-border focus:border-primary focus:ring-0 text-sm font-bold py-4 px-0 rounded-none transition-all appearance-none uppercase cursor-pointer outline-none group">
+                                            <option className="bg-background">Οικοδομικά Χρώματα</option>
+                                            <option className="bg-background">Χρώματα Αυτοκινήτου</option>
+                                            <option className="bg-background">Ναυτιλιακά Χρώματα</option>
+                                            <option className="bg-background">Ειδικές Εφαρμογές</option>
+                                            <option className="bg-background">Άλλο</option>
+                                        </select>
+                                        <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none group-hover:text-primary transition-colors" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Μήνυμα</label>
+                                <textarea
+                                    rows={4}
+                                    placeholder="ΠΩΣ ΜΠΟΡΟΥΜΕ ΝΑ ΣΑΣ ΒΟΗΘΗΣΟΥΜΕ;"
+                                    className="bg-transparent border-0 border-b border-border focus:border-primary focus:ring-0 placeholder:text-muted-foreground/30 text-sm font-bold py-4 px-0 resize-none rounded-none transition-all outline-none uppercase"
+                                />
+                            </div>
+
+                            <Button
+                                type="submit"
+                                size="lg"
+                                className="rounded-none px-12 py-8 text-xs font-black uppercase tracking-[0.3em] flex items-center gap-4 w-fit shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                            >
+                                Αποστολή Μηνύματος
+                                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                            </Button>
+                        </form>
+                    </div>
+
+                    {/* Sidebar Context */}
+                    <div className="space-y-16">
+                        {/* Contact Details Block */}
+                        <div className="space-y-6">
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
+                                <span className="p-1.5 bg-primary/10 rounded">
+                                    <Phone className="w-4 h-4" />
+                                </span>
+                                Τηλεφωνική Επικοινωνία
+                            </h3>
+
+                            <div className="p-8 bg-secondary/50 border-l-[6px] border-primary relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-2 opacity-5">
+                                    <Phone className="w-20 h-20 rotate-12" />
+                                </div>
+                                <p className="text-[10px] font-mono font-bold mb-3 uppercase tracking-widest text-muted-foreground">Τηλ:</p>
+                                <p className="text-2xl font-black tracking-tight text-foreground">2310 447 033</p>
+                                <p className="text-lg font-bold tracking-tight text-foreground mt-1">2310 444 329</p>
+                                <div className="mt-4 pt-4 border-t border-border/50 space-y-1">
+                                    <p className="text-[11px] text-muted-foreground leading-snug font-medium">
+                                        Κινητό: <span className="text-foreground font-black">6937 405030</span>
+                                    </p>
+                                    <p className="text-[11px] text-muted-foreground leading-snug font-medium">
+                                        Fax: <span className="text-foreground font-black">2310 446 280</span>
+                                    </p>
+                                    <p className="text-[11px] text-muted-foreground leading-snug font-medium">
+                                        Email: <span className="text-foreground font-black">info@pavlicevits.gr</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Location Section */}
+                        <div className="space-y-8">
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
+                                <span className="p-1.5 bg-primary/10 rounded">
+                                    <MapPin className="w-4 h-4" />
+                                </span>
+                                Τοποθεσία
+                            </h3>
+
+                            <div className="space-y-6">
+                                <div className="group border border-border p-7 hover:border-primary hover:bg-muted/30 transition-all duration-300 cursor-default relative overflow-hidden">
+                                    <div className="flex justify-between items-start relative z-10">
+                                        <div>
+                                            <h4 className="text-base font-black uppercase tracking-tight group-hover:text-primary transition-colors">Κατάστημα Καλαμαριάς</h4>
+                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em] mt-1">Κεντρικό Κατάστημα</p>
+                                        </div>
+                                        <MapPin className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-all duration-300 group-hover:scale-110" />
+                                    </div>
+                                    <div className="mt-6 text-[12px] text-muted-foreground leading-relaxed font-medium">
+                                        <p>Λεωφ. Εθνικής Αντιστάσεως 66</p>
+                                        <p>Καλαμαριά, 551 33</p>
+                                        <p>Θεσσαλονίκη</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Operating Hours */}
+                        <div className="space-y-6">
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-3">
+                                <span className="p-1.5 bg-primary/10 rounded">
+                                    <Clock className="w-4 h-4" />
+                                </span>
+                                Ωράριο Λειτουργίας
+                            </h3>
+
+                            <div className="border border-border p-7 space-y-3">
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="font-bold uppercase tracking-wide text-foreground">Δευτέρα - Παρασκευή</span>
+                                    <span className="font-black text-primary">08:30 - 16:30</span>
+                                </div>
+                                <div className="border-t border-border/50"></div>
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="font-bold uppercase tracking-wide text-foreground">Σάββατο</span>
+                                    <span className="font-black text-primary">08:30 - 14:30</span>
+                                </div>
+                                <div className="border-t border-border/50"></div>
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="font-bold uppercase tracking-wide text-foreground">Κυριακή</span>
+                                    <span className="font-black text-muted-foreground">Κλειστά</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section >
+        </>
+    );
+}

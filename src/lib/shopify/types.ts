@@ -61,6 +61,7 @@ export type Product = {
     description: string;
     descriptionHtml: string;
     productType?: string;
+    vendor?: string;
     featuredImage: Image;
     images: Connection<Image>;
     priceRange: {

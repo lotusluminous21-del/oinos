@@ -23,6 +23,8 @@ import {
     CheckCircle2,
     Package,
     Loader2,
+    X,
+    ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -39,6 +41,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from '@/components/ui/sheet';
+import { validateImageFile, resizeImageToBase64, uploadImageToStorage } from '@/lib/expert/image-utils';
 
 // ─── Status derivation ──────────────────────────────────────────
 
@@ -272,6 +275,10 @@ export default function ExpertContent() {
     const [canScrollUp, setCanScrollUp] = useState(false);
     const [canScrollDown, setCanScrollDown] = useState(false);
     const [sidebarRefreshing, setSidebarRefreshing] = useState(false);
+    const [pendingImage, setPendingImage] = useState<string | null>(null);
+    const [imageError, setImageError] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const {
         messages,
@@ -335,15 +342,33 @@ export default function ExpertContent() {
     // Derive sidebar data from sidebarState (AI-produced)
     const { steps: progressSteps, progress } = deriveProgressFromSidebar(sidebarState, isTyping, solution);
 
-    const handleSend = useCallback(() => {
+    const handleSend = useCallback(async () => {
         const trimmed = inputValue.trim();
-        if (!trimmed) return;
-        sendMessage(trimmed);
+        if (!trimmed && !pendingImage) return;
+
+        let imageUrl: string | undefined = undefined;
+
+        if (pendingImage) {
+            setIsUploading(true);
+            try {
+                imageUrl = await uploadImageToStorage(pendingImage, useExpertStore.getState().sessionId);
+            } catch (err) {
+                console.error('Failed to upload image', err);
+                setImageError('Αποτυχία μεταφόρτωσης εικόνας. Προσπαθήστε ξανά.');
+                setIsUploading(false);
+                return;
+            }
+            setIsUploading(false);
+        }
+
+        sendMessage(trimmed || '📷 Απεστάλη φωτογραφία', imageUrl);
         setInputValue('');
+        setPendingImage(null);
+        setImageError(null);
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
         }
-    }, [inputValue, sendMessage]);
+    }, [inputValue, pendingImage, sendMessage]);
 
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -509,13 +534,25 @@ export default function ExpertContent() {
                                                             : 'Site Engineer'
                                                     }
                                                     content={
-                                                        <span
-                                                            dangerouslySetInnerHTML={{
-                                                                __html: msg.content
-                                                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                                                    .replace(/\n/g, '<br />'),
-                                                            }}
-                                                        />
+                                                        <>
+                                                            {/* Inline image thumbnail for user messages */}
+                                                            {msg.image_url && (
+                                                                <div className="mb-2">
+                                                                    <img
+                                                                        src={msg.image_url}
+                                                                        alt="Uploaded photo"
+                                                                        className="max-w-[200px] max-h-[150px] rounded-md border border-border/50 object-cover"
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                            <span
+                                                                dangerouslySetInnerHTML={{
+                                                                    __html: msg.content
+                                                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                                                        .replace(/\n/g, '<br />'),
+                                                                }}
+                                                            />
+                                                        </>
                                                     }
                                                     actions={msgActions.length > 0 ? msgActions : undefined}
                                                 />
@@ -613,24 +650,81 @@ export default function ExpertContent() {
                             value={inputValue}
                             onChange={handleInput}
                             onKeyDown={handleKeyDown}
-                            placeholder="Type project details or technical questions..."
+                            placeholder="Περιγράψτε το έργο σας ή ρωτήστε τεχνικά..."
                             rows={1}
                             className="w-full bg-card border border-border rounded-lg px-4 py-3 pr-24 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-all placeholder:text-muted-foreground min-h-[48px]"
                         />
+
+                        {/* Pending image thumbnail strip */}
+                        {pendingImage && (
+                            <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-card border border-border animate-in fade-in duration-150">
+                                <img
+                                    src={pendingImage}
+                                    alt="Pending upload"
+                                    className="w-12 h-12 rounded object-cover border border-border"
+                                />
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <ImageIcon className="w-3 h-3" />
+                                    Φωτογραφία έτοιμη
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => { setPendingImage(null); setImageError(null); }}
+                                    className="ml-auto p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                    aria-label="Remove image"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Image error */}
+                        {imageError && (
+                            <p className="text-xs text-destructive mt-1">{imageError}</p>
+                        )}
+
+                        {/* Hidden file input for Paperclip */}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const validation = validateImageFile(file);
+                                if (!validation.valid) {
+                                    setImageError(validation.error ?? 'Invalid file');
+                                    return;
+                                }
+                                try {
+                                    const base64 = await resizeImageToBase64(file);
+                                    setPendingImage(base64);
+                                    setImageError(null);
+                                } catch {
+                                    setImageError('Αδυναμία επεξεργασίας εικόνας.');
+                                }
+                                // Reset input so same file can be re-selected
+                                e.target.value = '';
+                            }}
+                        />
+
                         <div className="absolute right-3 bottom-2.5 flex items-center gap-1">
                             <button
+                                onClick={() => fileInputRef.current?.click()}
                                 className="p-2 text-muted-foreground hover:text-accent transition-colors rounded-md hover:bg-secondary"
-                                aria-label="Attach file"
+                                aria-label="Attach photo"
+                                type="button"
                             >
                                 <Paperclip className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={handleSend}
-                                disabled={!inputValue.trim()}
+                                disabled={(!inputValue.trim() && !pendingImage) || isUploading}
                                 className="p-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                 aria-label="Send message"
                             >
-                                <Send className="w-4 h-4" />
+                                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             </button>
                         </div>
                     </div>

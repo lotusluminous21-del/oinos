@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#1a1a1a",
+            "brand-purple": "#4A148C",
+            "brand-teal": "#006064",
+            "background-light": "#f8f6f6",
+            "background-dark": "#121212",
+          },
+          fontFamily: {
+            "display": ["Public Sans", "sans-serif"]
+          },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        },
+      },
+    }</script>
+  <title>Your Cart | Pavlicevits Industrial Paint</title>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+  <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+      <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 lg:px-40 py-4 bg-background-light dark:bg-background-dark">
+        <div class="flex items-center gap-3">
+          <div class="bg-slate-900 dark:bg-slate-100 p-1.5 rounded">
+            <span class="material-symbols-outlined text-background-light dark:text-background-dark !text-2xl">
+              layers
+            </span>
+          </div>
+          <h2 class="text-xl font-black uppercase tracking-tighter">Pavlicevits</h2>
+        </div>
+        <div class="flex flex-1 justify-end gap-6 items-center">
+          <div
+            class="hidden sm:flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-800">
+            <span class="material-symbols-outlined text-slate-400 !text-xl">search</span>
+            <input class="bg-transparent border-none focus:ring-0 text-sm w-32 lg:w-48 placeholder:text-slate-400"
+              placeholder="Search catalog..." type="text" />
+          </div>
+          <div class="flex gap-4">
+            <button
+              class="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-100 dark:bg-slate-900/50 hover:bg-primary/10 transition-colors">
+              <span class="material-symbols-outlined">shopping_cart</span>
+            </button>
+            <button
+              class="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-100 dark:bg-slate-900/50 hover:bg-primary/10 transition-colors">
+              <span class="material-symbols-outlined">person</span>
+            </button>
+          </div>
+        </div>
+      </header>
+      <main class="flex-1 flex flex-col items-center px-6 lg:px-40 py-10">
+        <div class="max-w-5xl w-full">
+          <h1 class="text-3xl font-black leading-tight tracking-[-0.033em] mb-8">Shopping Cart</h1>
+          <div class="flex flex-col lg:flex-row gap-12">
+            <div class="flex-1 flex flex-col gap-6">
+              <div class="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+                <div class="flex items-center gap-6 py-2 justify-between">
+                  <div class="flex items-center gap-6">
+                    <div
+                      class="bg-slate-200 dark:bg-slate-800 bg-center bg-no-repeat aspect-square bg-contain rounded-xl size-24 p-2"
+                      data-alt="Industrial aerosol paint can on transparent background"
+                      style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCcCUYFgbzFfuUyjcSAvrZklBTLDNNh3zskO8dkZ9AHPWTG_CYdt2Pw-xccp5M3J2nT5_1mG1EGuU2JbZhRuTp_82M2AsAvgRr8MFXSR_20SzuHGoPitIU8dLURBImgZpxk1ENBulcKSkoS77xK1MtJFq1VP15ghPZmepbQiyBvcMEpcQwwRJrmrIymZCEJuzaw22KlWyGJhxGOMYYisUPp1HGMcY5Y40uRIsNbDTJKjtiPO4y2uy53Ehq5juXFikOfw0MTV_EQFJI");'>
+                    </div>
+                    <div class="flex flex-col">
+                      <p class="text-lg font-bold leading-normal">Precision Aerosol V.2</p>
+                      <p class="text-slate-500 text-sm font-medium">Matte Black • 400ml</p>
+                      <p class="font-bold mt-1 text-slate-900 dark:text-white">$14.99</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-col items-end gap-4">
+                    <button class="text-slate-400 hover:text-red-500 transition-colors">
+                      <span class="material-symbols-outlined !text-xl">delete</span>
+                    </button>
+                    <div
+                      class="flex items-center gap-3 bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
+                      <button
+                        class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm">-</button>
+                      <span class="text-base font-bold w-4 text-center">2</span>
+                      <button
+                        class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+                <div class="flex items-center gap-6 py-2 justify-between">
+                  <div class="flex items-center gap-6">
+                    <div
+                      class="bg-slate-200 dark:bg-slate-800 bg-center bg-no-repeat aspect-square bg-contain rounded-xl size-24 p-2"
+                      data-alt="Professional surface primer container on transparent background"
+                      style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmOI1EsVuj_b62iqpwgyj6Ab7LVn8BwQHd3gapowCqgtNCRtPXkv3HY8OzjYyUbS3C90BNN0GrDkVnd8C7tHFrLeSRBZYr-1H0SsCaHIgw6FIl_PsyPrz7CX5rW9SkRDFjq6ae2rmcRJd9LhB7pM-YbJ1jB8MfrwCuLZYCoi7AGuGgwL0oe4UmtoDHRWKKiotpH1pHZ6UCniPWnW3Qcd27eyi3h2J3w5Vfx07EeJwVFnQngvPK7524m5jAX1XTYD71tITZWgzSCUY");'>
+                    </div>
+                    <div class="flex flex-col">
+                      <p class="text-lg font-bold leading-normal">Surface Primer</p>
+                      <p class="text-slate-500 text-sm font-medium">High Adhesion • Grey • 1L</p>
+                      <p class="font-bold mt-1 text-slate-900 dark:text-white">$28.50</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-col items-end gap-4">
+                    <button class="text-slate-400 hover:text-red-500 transition-colors">
+                      <span class="material-symbols-outlined !text-xl">delete</span>
+                    </button>
+                    <div
+                      class="flex items-center gap-3 bg-slate-100 dark:bg-slate-900/50 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
+                      <button
+                        class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm">-</button>
+                      <span class="text-base font-bold w-4 text-center">1</span>
+                      <button
+                        class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button
+                class="flex items-center gap-2 text-slate-500 transition-colors font-medium mt-4 hover:text-brand-purple">
+                <span class="material-symbols-outlined">arrow_back</span>
+                Continue Shopping
+              </button>
+            </div>
+            <aside class="w-full lg:w-96">
+              <div
+                class="bg-slate-100 dark:bg-slate-900/40 rounded-2xl p-8 border border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold mb-6">Order Summary</h3>
+                <div class="flex flex-col gap-4">
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Subtotal</span>
+                    <span class="font-bold">$58.48</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Shipping</span>
+                    <span class="font-bold text-green-600">Free</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Tax</span>
+                    <span class="font-bold">$4.68</span>
+                  </div>
+                  <hr class="border-slate-200 dark:border-slate-800 my-2" />
+                  <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-bold">Total</span>
+                    <span class="text-2xl font-black text-slate-900 dark:text-white">$63.16</span>
+                  </div>
+                  <div class="mt-4 flex flex-col gap-3">
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Promo Code</label>
+                    <div class="flex gap-2">
+                      <input
+                        class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary"
+                        placeholder="Enter code" type="text" />
+                      <button
+                        class="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2 rounded-lg text-sm font-bold">Apply</button>
+                    </div>
+                  </div>
+                  <button
+                    class="w-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold py-4 uppercase text-xs tracking-[0.2em] transition-all hover:bg-brand-purple dark:hover:bg-purple-200 mt-6 flex items-center justify-center gap-2">
+                    Proceed to Checkout
+                    <span class="material-symbols-outlined !text-sm">lock</span>
+                  </button>
+                  <div class="mt-6 flex flex-col gap-4 items-center">
+                    <p class="text-xs text-slate-400 flex items-center gap-1">
+                      <span class="material-symbols-outlined !text-sm">verified</span>
+                      Secure Checkout powered by Pavlicevits Pay
+                    </p>
+                    <div class="flex gap-3 opacity-50 grayscale">
+                      <div class="h-6 w-10 bg-slate-300 dark:bg-slate-700 rounded-sm" data-alt="Visa logo placeholder">
+                      </div>
+                      <div class="h-6 w-10 bg-slate-300 dark:bg-slate-700 rounded-sm"
+                        data-alt="Mastercard logo placeholder"></div>
+                      <div class="h-6 w-10 bg-slate-300 dark:bg-slate-700 rounded-sm"
+                        data-alt="Apple Pay logo placeholder"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+      <footer
+        class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 px-6 lg:px-40 py-12 mt-20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
+          <div class="flex flex-col gap-4 max-w-sm">
+            <div class="flex items-center gap-3 text-slate-900 dark:text-slate-100">
+              <div class="bg-slate-900 dark:bg-slate-100 p-1 rounded">
+                <span
+                  class="material-symbols-outlined text-background-light dark:text-background-dark !text-lg">layers</span>
+              </div>
+              <h2 class="text-lg font-black uppercase tracking-tighter">Pavlicevits</h2>
+            </div>
+            <p class="text-slate-500 text-sm">Industrial grade solutions for professional coating systems. Quality and
+              precision since 1984.</p>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-10">
+            <div class="flex flex-col gap-4">
+              <h4 class="font-bold text-sm uppercase tracking-widest">Shop</h4>
+              <ul class="flex flex-col gap-2 text-slate-500 text-sm">
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Industrial Aerosols</a></li>
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Surface Primers</a></li>
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Custom Colors</a></li>
+              </ul>
+            </div>
+            <div class="flex flex-col gap-4">
+              <h4 class="font-bold text-sm uppercase tracking-widest">Support</h4>
+              <ul class="flex flex-col gap-2 text-slate-500 text-sm">
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Safety Sheets</a></li>
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Shipping Policy</a></li>
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Bulk Orders</a></li>
+              </ul>
+            </div>
+            <div class="flex flex-col gap-4">
+              <h4 class="font-bold text-sm uppercase tracking-widest">Contact</h4>
+              <ul class="flex flex-col gap-2 text-slate-500 text-sm">
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Email Us</a></li>
+                <li><a class="transition-colors hover:text-brand-purple" href="#">Find a Store</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div
+          class="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+          <p>© 2024 Pavlicevits Industrial Paint Store. All rights reserved.</p>
+          <div class="flex gap-6">
+            <a class="hover:underline" href="#">Privacy Policy</a>
+            <a class="hover:underline" href="#">Terms of Service</a>
+            <a class="hover:underline" href="#">Cookie Policy</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+</body>
+
+</html>

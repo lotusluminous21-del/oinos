@@ -22,7 +22,7 @@ import asyncio
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger
 from core.llm_config import LLMConfig
-from expert_v3.tools import search_products
+from expert_v3.tools import search_products, search_products_batch, search_custom_paint, find_closest_standard_color, extract_colors_from_photo
 
 from google.adk.agents import Agent
 from google.adk.runners import Runner
@@ -40,7 +40,7 @@ SYSTEM_PROMPT = """Είσαι ο υπεύθυνος ενός κορυφαίου 
 
 ### ΤΟ ΠΡΟΦΙΛ ΣΟΥ (PERSONA)
 - **Ενέργεια & Ευγένεια:** Είσαι πάντα γεμάτος ενέργεια, εξυπηρετικός και νιώθεις υπερηφάνεια που βοηθάς τους πελάτες. Ο τόνος σου είναι επαγγελματικός αλλά ζεστός, σαν να υποδέχεσαι κάποιον στο φυσικό σου κατάστημα.
-- **Εμπειρογνωμοσύνη:** Κατέχεις άριστα τη "Φυσική του Χρώματος". Ξέρεις πότε χρειάζεται σκληρυντής (π.χ. σε προϊόντα 2K τα οποία έχουν mixing_ratio), πότε ένα αστάρι είναι απαραίτητο, και πώς ο χρόνος στεγνώματος (recoat_window) επηρεάζει τις επόμενες στρώσεις.
+- **Εμπειρογνωμοσύνη:** Κατέχεις άριστα τη "Φυσική του Χρώματος". Ξέρεις πότε χρειάζεται σκληρυντής (π.χ. σε προϊόντα 2K τα οποία έχουν mixing_ratio), πότε ένα αστάρι είναι απαραίτητο, πώς ο χρόνος στεγνώματος (recoat_window) επηρεάζει τις επόμενες στρώσεις, και ότι ονόματα χρωμάτων (π.χ. "μαύρο", "λευκό", "γκρι") αντιστοιχούν σε πολλές διαφορετικές αποχρώσεις στην πράξη — ένας έμπειρος βαφέας πάντα διερευνά τι ακριβώς εννοεί ο πελάτης.
 - **Ευελιξία & Οξυδέρκεια:** Είτε μιλάς με έναν ενθουσιώδη ερασιτέχνη (DIY) είτε με έναν βετεράνο επαγγελματία, προσαρμόζεις την ορολογία σου. Αν χρειάζεσαι περισσότερες πληροφορίες, **κάνε ερωτήσεις φυσικά και με ευγένεια**. Μη λειτουργείς σαν φορμάτ ερωτηματολογίου, αλλά σαν ένας έμπειρος επαγγελματίας που συζητά.
 
 ### ΤΕΧΝΙΚΗ ΓΝΩΣΗ & ΠΑΡΑΜΕΤΡΟΙ (Χρησιμοποίησε αυτούς τους ακριβείς όρους στο search_products)
@@ -77,7 +77,7 @@ SYSTEM_PROMPT = """Είσαι ο υπεύθυνος ενός κορυφαίου 
    - Κατάσταση επιφάνειας (γυμνή, σκουριασμένη, ήδη βαμμένη, γρατζουνιές)
    - Μέθοδος εφαρμογής (σπρέι, πιστόλι, πινέλο/ρολό)
    - Φινίρισμα (ματ, σατινέ, γυαλιστερό - ΤΟ ΦΙΝΙΡΙΣΜΑ ΕΙΝΑΙ ΚΡΙΣΙΜΟ)
-   - Χρώμα/απόχρωση (αν ο πελάτης ενδιαφέρεται για συγκεκριμένo χρώμα)
+   - Χρώμα/απόχρωση — πάντα ρώτα τι εννοεί ο πελάτης (π.χ. "μαύρο" μπορεί να σημαίνει jet black RAL 9005, ανθρακί, ή θερμό μαύρο). Αν ο πελάτης δηλώσει ότι δεν έχει συγκεκριμένη προτίμηση ή ότι "οτιδήποτε κοντά στο μαύρο" του κάνει, σεβάσου το και προχώρα — δεν χρειάζεται εξαντλητική ακρίβεια αν ο ίδιος δεν τη ζητάει.
    
    **Β. Σημαντικές (ρώτα αν σχετίζονται με το πρόβλημα):**
    - Περιβάλλον (εσωτερικός/εξωτερικός χώρος, θαλάσσιο)
@@ -92,22 +92,22 @@ SYSTEM_PROMPT = """Είσαι ο υπεύθυνος ενός κορυφαίου 
    - Αν μια αναζήτηση επιστρέψει *NO_RESULTS*, μείνε ψύχραιμος. Δοκίμασε πιο γενικούς όρους (αφαιρώντας ίσως το finish ή το chemical_base) ή συμβούλευσε τον πελάτη αντίστοιχα χωρίς να εκτελείς διαδοχικές αποτυχημένες αναζητήσεις.
 
 ### ΠΡΩΤΟΚΟΛΛΟ ΕΞΑΤΟΜΙΚΕΥΜΕΝΟΥ ΧΡΩΜΑΤΟΣ
-Όταν ο πελάτης ζητάει ΣΥΓΚΕΚΡΙΜΕΝΟ χρώμα που ΔΕΝ υπάρχει ως έτοιμη παραλλαγή στα αποτελέσματα αναζήτησης, ή όταν ο πελάτης αναφέρει κωδικό χρώματος (RAL, NCS, Pantone, OEM κωδικό αυτοκινήτου):
+Όταν ο πελάτης ζητάει ΣΥΓΚΕΚΡΙΜΕΝΟ χρώμα που ΔΕΝ υπάρχει ως έτοιμη παραλλαγή στα αποτελέσματα αναζήτησης, ή όταν ο πελάτης αναφέρει κωδικό χρώματος (RAL, ή OEM κωδικό αυτοκινήτου):
 
 **ΣΗΜΑΝΤΙΚΟ: Αυτό ισχύει ΜΟΝΟ για Χρώματα Βάσης (sequence_step="Βασικό Χρώμα"). Για αστάρια, βερνίκια, προετοιμασία και άλλες κατηγορίες, ΔΕΝ προσφέρουμε εξατομίκευση χρώματος.**
 
 1. **ΑΝΑΓΝΩΡΙΣΗ:** Κατάλαβε ότι ο πελάτης χρειάζεται εξατομικευμένο χρώμα βάσης.
 2. **ΔΙΕΡΕΥΝΗΣΗ (mini-discovery loop):**
-   a. Ρώτα για τον ΑΚΡΙΒΗ κωδικό χρώματος αν δεν δόθηκε (π.χ. RAL, NCS, Pantone, ή κωδικός κατασκευαστή αυτοκινήτου).
+   a. Ρώτα για τον ΑΚΡΙΒΗ κωδικό χρώματος αν δεν δόθηκε (π.χ. RAL ή κωδικός κατασκευαστή αυτοκινήτου OEM).
    b. Αν ο πελάτης δεν ξέρει τον κωδικό, βοήθησέ τον ανάλογα:
       - **Αυτοκίνητο:** "Ο κωδικός χρώματος βρίσκεται σε ετικέτα στο εσωτερικό της πόρτας οδηγού ή στο βιβλίο service."
       - **Τοίχος/Επιφάνεια:** "Αν έχετε παλιό δοχείο χρώματος, ο κωδικός αναγράφεται στην ετικέτα."
       - **Γενικά:** "Αν δεν έχετε κωδικό, μπορείτε να μας φέρετε δείγμα στο κατάστημα για ακριβή αντιστοιχία, ή να χρησιμοποιήσετε γενική περιγραφή — θα κάνουμε ό,τι μπορούμε!"
    c. Αν ο πελάτης δώσει γενική περιγραφή (π.χ. "σκούρο μπλε"), αποδέξου αλλά ενημέρωσέ τον ευγενικά ότι η ακρίβεια θα είναι κατά προσέγγιση. Για ακριβή αντιστοιχία (ιδιαίτερα σε αυτοκίνητα), πρότεινε επίσκεψη στο φυσικό κατάστημα.
-3. **ΑΝΑΖΗΤΗΣΗ CUSTOM ΠΡΟΪΟΝΤΟΣ:** Αφού κατανοήσεις τι χρειάζεται, ψάξε τα εξατομικευμένα προϊόντα μας:
-   - Χρησιμοποίησε search_products(category="Χρώματα Βάσης") ΧΩΡΙΣ variant_title.
-   - Τα custom products έχουν handle: custom-spray-paint, custom-bucket-paint, custom-touchup-kit
-   - Επέλεξε αυτό που ταιριάζει στη μέθοδο εφαρμογής (σπρέι, δοχείο, touch-up).
+3. **ΑΝΑΖΗΤΗΣΗ CUSTOM ΠΡΟΪΟΝΤΟΣ:** Αφού έχεις κωδικό χρώματος (RAL, OEM, κτλ.) ΚΑΙ μέθοδο εφαρμογής, κάλεσε **search_custom_paint**:
+   - search_custom_paint(application_method="Σπρέι", finish="Γυαλιστερό", color_code="RAL 9005", color_system="RAL")
+   - Αυτό βρίσκει αυτόματα το σωστό custom product (custom-spray-paint, custom-bucket-paint ή custom-touchup-kit) ανάλογα με τη μέθοδο εφαρμογής.
+   - **ΜΗΝ χρησιμοποιείς search_products για εξατομικευμένο χρώμα βάσης** — χρησιμοποίησε πάντα search_custom_paint.
 4. **ΚΑΤΑΓΡΑΦΗ:** Στην τελική σου απάντηση, σημείωσε ξεκάθαρα τις πληροφορίες χρώματος (σύστημα χρώματος, κωδικός, μάρκα αυτοκινήτου) ώστε να καταγραφούν στο πλάνο λύσης.
 
 4. **Τελική Λύση:** Όταν έχεις συγκεντρώσει όλες τις απαραίτητες πληροφορίες και βρεθούν προϊόντα για ΟΛΑ τα απαιτούμενα sequence steps, δώσε ένα συνοπτικό τελικό πλάνο σε μία απάντηση και ενημέρωσε τον πελάτη ότι μπορεί να δημιουργήσει το πλάνο λύσης όταν είναι έτοιμος. **ΜΗΝ** συνεχίσεις να ρωτάς «είστε έτοιμοι;» άλλες φορές — το κουμπί δημιουργίας πλάνου το αναλαμβάνει αυτόματα.
@@ -115,6 +115,24 @@ SYSTEM_PROMPT = """Είσαι ο υπεύθυνος ενός κορυφαίου 
 
 **ΣΗΜΑΝΤΙΚΟ:** 
 Δεν υπάρχουν άκαμπτοι κανόνες. Βασίσου στην κριτική σου σκέψη. Αν ένας έμπειρος πελάτης ξέρει ακριβώς τι θέλει, εξυπηρέτησέ τον άμεσα. Αν ένας αρχάριος μπερδεύεται, καθοδήγησέ τον βήμα-βήμα.
+
+### ΕΡΓΑΛΕΙΟ ΑΝΤΙΣΤΟΙΧΙΣΗΣ HEX ΧΡΩΜΑΤΟΣ
+Αν ο πελάτης δώσει hex ή RGB κωδικό, χρησιμοποίησε **find_closest_standard_color**(hex_code="#XXXXXX") για να βρεις τον πλησιέστερο κωδικό RAL. Παρουσίασε τα αποτελέσματα: "Πλησιέστερο RAL: [κωδικός] — ΔE [βαθμολογία] ([εμπιστοσύνη])".
+
+### ΠΡΩΤΟΚΟΛΛΟ ΦΩΤΟΓΡΑΦΙΑΣ
+Αν ο πελάτης στείλει φωτογραφία:
+1. **ΚΑΤΑΝΟΗΣΗ ΠΛΑΙΣΙΟΥ** (δική σου δουλειά — κοίτα την εικόνα):
+   - Αναγνώρισε ΤΙ δείχνει η φωτογραφία (αυτοκίνητο, τοίχο, μέταλλο κτλ.)
+   - Αν υπάρχουν πολλά αντικείμενα, ρώτα: "Θέλετε το χρώμα του αυτοκινήτου ή κάτι άλλο;"
+   - Αν ο φωτισμός είναι ασυνήθιστος (ηλιοβασίλεμα, νέον), ενημέρωσε τον πελάτη
+2. **ΜΕΤΡΗΣΗ ΧΡΩΜΑΤΟΣ** (δουλειά του εργαλείου — ΜΗΝ μαντεύεις hex κωδικούς):
+   - Κάλεσε **extract_colors_from_photo** με τη φωτογραφία (base64)
+   - Παρουσίασε τα αποτελέσματα: "Τα κυρίαρχα χρώματα που εντοπίστηκαν: [χρώματα + ποσοστά]"
+   - Ρώτα: "Ποιο από αυτά αντιστοιχεί στο χρώμα που θέλετε;"
+3. **ΑΝΤΙΣΤΟΙΧΙΣΗ** (μετά την επιβεβαίωση πελάτη):
+   - Κάλεσε **find_closest_standard_color** με το επιλεγμένο hex
+   - Παρουσίασε: "Πλησιέστερο RAL: [κωδικός] — ΔE [βαθμολογία]"
+**ΣΗΜΑΝΤΙΚΟ:** Η φωτογραφία ΔΕΝ αποτελεί μοναδική πηγή αλήθειας! Πάντα ζήτα επιβεβαίωση.
 """
 
 
@@ -155,7 +173,17 @@ class ExpertV3Agent:
             model=adk_model,
             description="Expert surface treatment advisor for the Pavlicevits paint shop.",
             instruction=SYSTEM_PROMPT,
-            tools=[search_products],
+            tools=[search_products, search_products_batch, search_custom_paint, find_closest_standard_color, extract_colors_from_photo],
+            # Approach B: ADK configuration — bias the model toward tool use.
+            # AUTO lets the model decide WHEN to use tools (it can still chat),
+            # but encourages it to use them when they're relevant.
+            generate_content_config=genai_types.GenerateContentConfig(
+                tool_config=genai_types.ToolConfig(
+                    function_calling_config=genai_types.FunctionCallingConfig(
+                        mode="AUTO"
+                    )
+                )
+            ),
         )
         self._session_service = InMemorySessionService()
         self._runner = Runner(
@@ -173,6 +201,7 @@ class ExpertV3Agent:
         session_id: Optional[str] = None,
         user_id: Optional[str] = None,
         session_data: Optional[Dict[str, Any]] = None,
+        image_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Process one user turn (sync entry point).
@@ -191,6 +220,7 @@ class ExpertV3Agent:
             user_id=effective_user_id,
             history_turns=len(history),
             user_message=user_message[:120],
+            has_image=bool(image_url),
         )
 
         try:
@@ -201,6 +231,7 @@ class ExpertV3Agent:
                 effective_session_id=effective_session_id,
                 effective_user_id=effective_user_id,
                 session_data=session_data,
+                image_url=image_url,
             ))
 
         except Exception as e:
@@ -223,6 +254,7 @@ class ExpertV3Agent:
         effective_session_id: str,
         effective_user_id: str,
         session_data: Optional[Dict[str, Any]] = None,
+        image_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Async inner method — runs the ADK agent loop with proper awaits."""
         import uuid
@@ -243,13 +275,30 @@ class ExpertV3Agent:
             for msg in history:
                 role = msg.get("role", "user")
                 content_text = msg.get("content", "")
-                if not content_text:
+                if not content_text and not msg.get("image_url"):
                     continue
                 adk_role = "user" if role == "user" else "model"
-                content = genai_types.Content(
-                    role=adk_role,
-                    parts=[genai_types.Part.from_text(text=content_text)]
-                )
+                
+                # Build parts (multimodal if image exists)
+                parts = []
+                if msg.get("image_url") and adk_role == "user":
+                    try:
+                        import requests
+                        resp = requests.get(msg["image_url"], timeout=5)
+                        if resp.status_code == 200:
+                            parts.append(genai_types.Part.from_bytes(
+                                data=resp.content,
+                                mime_type="image/jpeg"
+                            ))
+                    except Exception:
+                        pass  # Skip corrupt image data in history
+                if content_text:
+                    parts.append(genai_types.Part.from_text(text=content_text))
+                
+                if not parts:
+                    continue
+                
+                content = genai_types.Content(role=adk_role, parts=parts)
                 evt = Event(
                     invocation_id=f"history_{uuid.uuid4().hex[:8]}",
                     author=adk_role,
@@ -265,22 +314,83 @@ class ExpertV3Agent:
             adk_session=turn_session_id,
         )
 
-        # Inject previously found products if they exist
+        # Approach C: Smart gap analysis — give the model FACTS, not commands.
+        # We compute which sequence steps are already covered and which are missing,
+        # then present this as structured information the model can reason about.
         new_text = user_message
         if session_data:
             accumulated = session_data.get("accumulatedProducts", {})
             if accumulated:
                 import json
                 products_list = list(accumulated.values())
-                new_text += f"\n\n[SYSTEM CONTEXT — PRODUCTS ALREADY FOUND THIS SESSION (treat as reference, not final answer):\n{json.dumps(products_list, ensure_ascii=False)}\n\nCRITICAL: Check whether ALL required sequence steps for this project are covered above (e.g. Proetoimasia, Astari, Vasiko Xroma, Verniki as applicable). If ANY required step is missing, call search_products IMMEDIATELY — do NOT describe what you will search, do NOT ask for permission, just call the tool now.]"
+
+                # Compute gap analysis
+                covered_steps = set()
+                for product in accumulated.values():
+                    steps = product.get("sequence_step", [])
+                    if isinstance(steps, list):
+                        covered_steps.update(s for s in steps if s)
+                    elif steps:
+                        covered_steps.add(steps)
+
+                all_typical_steps = ["Προετοιμασία/Καθαριστικό", "Αστάρι", "Βασικό Χρώμα", "Βερνίκι"]
+                missing_steps = [s for s in all_typical_steps if s not in covered_steps]
+
+                # Detect if the session has custom color info (RAL/OEM code known)
+                has_custom_color = any(
+                    p.get("handle", "") in ("custom-spray-paint", "custom-bucket-paint", "custom-touchup-kit")
+                    or p.get("is_custom_paint")
+                    for p in accumulated.values()
+                )
+
+                # Build action-oriented gap note
+                if missing_steps:
+                    if has_custom_color:
+                        action_note = (
+                            f"ACTION REQUIRED: {len(missing_steps)} steps still need products: {', '.join(missing_steps)}. "
+                            f"Call search_products_batch NOW to find products for these steps in one call."
+                        )
+                    else:
+                        action_note = (
+                            f"ACTION REQUIRED: {len(missing_steps)} steps still need products: {', '.join(missing_steps)}. "
+                            f"For Βασικό Χρώμα with a specific color code, use search_custom_paint. "
+                            f"For all other steps, use search_products_batch to find them all at once."
+                        )
+                else:
+                    action_note = "All typical steps are covered. Review if any optional items are needed."
+
+                context = {
+                    "products_found": products_list,
+                    "covered_steps": list(covered_steps),
+                    "potentially_missing_steps": missing_steps,
+                    "action": action_note,
+                }
+                new_text += f"\n\n[SESSION CONTEXT: {json.dumps(context, ensure_ascii=False)}]"
 
         # 🚨 ANTI-HALLUCINATION: Enforce Language
         new_text += "\n\n[CRITICAL SYSTEM INSTRUCTION: ΠΡΕΠΕΙ ΝΑ ΑΠΑΝΤΗΣΕΙΣ ΣΤΑΣ ΕΛΛΗΝΙΚΑ (ή στη γλώσσα του χρήστη). ΑΠΑΓΟΡΕΥΕΤΑΙ να απαντήσεις στα Αγγλικά, ακόμα και αν τα εργαλεία επέστρεψαν αγγλικό κείμενο.]"
 
-        # Build the new user message
+        # Build the new user message (multimodal if image attached)
+        new_parts = []
+        if image_url:
+            try:
+                import requests
+                resp = requests.get(image_url, timeout=10)
+                if resp.status_code == 200:
+                    new_parts.append(genai_types.Part.from_bytes(
+                        data=resp.content,
+                        mime_type="image/jpeg"
+                    ))
+                    logger.info("ExpertV3: Fetched and attached image to user message")
+                else:
+                    logger.warning(f"ExpertV3: Failed to fetch image, status: {resp.status_code}")
+            except Exception as img_err:
+                logger.warning(f"ExpertV3: Failed to decode image: {img_err}")
+        new_parts.append(genai_types.Part.from_text(text=new_text))
+        
         new_content = genai_types.Content(
             role="user",
-            parts=[genai_types.Part.from_text(text=new_text)]
+            parts=new_parts
         )
 
         if doc_ref:
@@ -327,35 +437,52 @@ class ExpertV3Agent:
                     except Exception:
                         pass
 
+                if doc_ref and tool_name == "search_products_batch":
+                    try:
+                        n_searches = len(tool_args.get("searches", []))
+                        doc_ref.update({"agentStatus": f"Αναζήτηση {n_searches} κατηγοριών..."})
+                    except Exception:
+                        pass
+
+                if doc_ref and tool_name == "search_custom_paint":
+                    try:
+                        color = tool_args.get("color_code") or "εξατομικευμένο χρώμα"
+                        doc_ref.update({"agentStatus": f"Αναζήτηση custom χρώματος: {color}..."})
+                    except Exception:
+                        pass
+
             # ── TOOL RESPONSE EVENTS ──────────────────────────────────────
             fn_responses = event.get_function_responses() or []
             for fn_response in fn_responses:
                 raw = fn_response.response or {}
                 payload = raw.get("result") or raw
 
+                # Helper: accumulate product results into Firestore
+                def _accumulate_results(results_list):
+                    if not doc_ref or not results_list:
+                        return
+                    try:
+                        doc = doc_ref.get().to_dict() or {}
+                        accumulated = doc.get("accumulatedProducts", {})
+                        
+                        for r in results_list:
+                            if isinstance(r, dict) and r.get("status") != "NO_RESULTS":
+                                vid = str(r.get("variant_id", ""))
+                                if vid and vid != "None":
+                                    accumulated[vid] = {
+                                        "title": r.get("title"),
+                                        "handle": r.get("handle"),
+                                        "variant_id": r.get("variant_id"),
+                                        "available_variants": r.get("available_variants", []),
+                                        "sequence_step": r.get("sequence_step", [])
+                                    }
+                        doc_ref.update({"accumulatedProducts": accumulated})
+                    except Exception as e:
+                        logger.error("Failed to save accumulatedProducts", exc_info=e)
+
                 if fn_response.name == "search_products":
                     results = payload if isinstance(payload, list) else []
-
-                    if doc_ref and results:
-                        try:
-                            # Update the accumulated products in the session document
-                            doc = doc_ref.get().to_dict() or {}
-                            accumulated = doc.get("accumulatedProducts", {})
-                            
-                            for r in results:
-                                if isinstance(r, dict) and r.get("status") != "NO_RESULTS":
-                                    vid = str(r.get("variant_id", ""))
-                                    if vid and vid != "None":
-                                        accumulated[vid] = {
-                                            "title": r.get("title"),
-                                            "handle": r.get("handle"),
-                                            "variant_id": r.get("variant_id"),
-                                            "available_variants": r.get("available_variants", []),
-                                            "sequence_step": r.get("sequence_step", [])
-                                        }
-                            doc_ref.update({"accumulatedProducts": accumulated})
-                        except Exception as e:
-                            logger.error("Failed to save accumulatedProducts", exc_info=e)
+                    _accumulate_results(results)
 
                     no_results = any(
                         isinstance(r, dict) and r.get("status") == "NO_RESULTS"
@@ -374,6 +501,60 @@ class ExpertV3Agent:
                             tool="search_products",
                             result_count=len(results),
                             product_titles=str([r.get("title") for r in results[:5]])[:200],
+                        )
+
+                elif fn_response.name == "search_products_batch":
+                    # Batch results are a list of groups: [{label, results}, ...]
+                    groups = payload if isinstance(payload, list) else []
+                    total_products = 0
+                    for group in groups:
+                        if isinstance(group, dict):
+                            group_results = group.get("results", [])
+                            _accumulate_results(group_results)
+                            total_products += len([r for r in group_results if isinstance(r, dict) and r.get("status") != "NO_RESULTS"])
+
+                    logger.info(
+                        f"ExpertV3 Tool: search_products_batch → {len(groups)} groups, {total_products} total product(s)",
+                        session_id=effective_session_id,
+                        tool="search_products_batch",
+                    )
+
+                elif fn_response.name == "search_custom_paint":
+                    # Custom paint returns a single product dict (not a list)
+                    if isinstance(payload, dict) and payload.get("status") not in ("ERROR", "NO_RESULTS"):
+                        # Pick the first matching variant for accumulation
+                        variants = payload.get("matching_variants") or payload.get("all_variants", [])
+                        if variants and doc_ref:
+                            try:
+                                doc = doc_ref.get().to_dict() or {}
+                                accumulated = doc.get("accumulatedProducts", {})
+                                first_variant = variants[0]
+                                vid = str(first_variant.get("id", ""))
+                                if vid and vid != "None":
+                                    accumulated[vid] = {
+                                        "title": payload.get("title"),
+                                        "handle": payload.get("handle"),
+                                        "variant_id": first_variant.get("id"),
+                                        "available_variants": variants,
+                                        "sequence_step": payload.get("sequence_step", []),
+                                        "is_custom_paint": True,
+                                        "custom_color_info": payload.get("custom_color_info"),
+                                    }
+                                doc_ref.update({"accumulatedProducts": accumulated})
+                            except Exception as e:
+                                logger.error("Failed to accumulate custom paint product", exc_info=e)
+
+                        logger.info(
+                            "ExpertV3 Tool: search_custom_paint → found custom product",
+                            session_id=effective_session_id,
+                            tool="search_custom_paint",
+                            handle=payload.get("handle"),
+                        )
+                    else:
+                        logger.warning(
+                            f"ExpertV3 Tool: search_custom_paint → {payload.get('status', 'UNKNOWN')}",
+                            session_id=effective_session_id,
+                            tool="search_custom_paint",
                         )
 
             # ── FINAL RESPONSE EVENT ──────────────────────────────────────

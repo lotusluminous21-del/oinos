@@ -1,162 +1,445 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useAuth } from "@/lib/auth-context"
-import { signInWithGoogle, signOutUser } from "@/lib/auth"
-import { Header } from "@/components/ui/skeumorphic/header"
-import { BottomNav } from "@/components/ui/skeumorphic/bottom-nav"
-import { PrimaryButton } from "@/components/ui/skeumorphic/primary-button"
-import { cn } from "@/lib/utils"
-import Image from "next/image"
-import { LogOut, Package, CreditCard, Bell, Settings, ChevronRight, User as UserIcon } from "lucide-react"
+import * as React from "react";
+import { useAuth } from "@/lib/auth-context";
+import { signInWithGoogle, signOutUser } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { fetchCustomerProfile } from "@/app/actions/customer";
+import {
+    LayoutDashboard,
+    Package,
+    Bookmark,
+    FileText,
+    Settings,
+    Factory,
+    Banknote,
+    ShieldCheck,
+    LogOut,
+    User as UserIcon,
+    ArrowLeftFromLine,
+    Inbox,
+    FileImage
+} from "lucide-react";
+
+type Tab = 'overview' | 'orders' | 'projects' | 'docs' | 'settings';
 
 export default function ProfilePage() {
-    const { user, loading } = useAuth()
-    const [isSigningIn, setIsSigningIn] = React.useState(false)
+    const { user, profile, loading: authLoading } = useAuth();
+    const [isSigningIn, setIsSigningIn] = React.useState(false);
+
+    const [customerData, setCustomerData] = React.useState<any>(null);
+    const [dataLoading, setDataLoading] = React.useState(false);
+
+    const [activeTab, setActiveTab] = React.useState<Tab>('overview');
+
+    React.useEffect(() => {
+        if (user?.email) {
+            setDataLoading(true);
+            fetchCustomerProfile(user.email).then((data) => {
+                setCustomerData(data);
+                setDataLoading(false);
+            });
+        }
+    }, [user]);
 
     const handleLogin = async () => {
-        setIsSigningIn(true)
+        setIsSigningIn(true);
         try {
-            await signInWithGoogle()
+            await signInWithGoogle();
         } catch (error) {
-            console.error(error)
+            console.error(error);
         }
-        setIsSigningIn(false)
-    }
+        setIsSigningIn(false);
+    };
 
     const handleLogout = async () => {
         try {
-            await signOutUser()
+            await signOutUser();
         } catch (error) {
-            console.error(error)
+            console.error(error);
         }
+    };
+
+    if (authLoading || (user && dataLoading && !customerData)) {
+        return (
+            <div className="flex-1 flex items-center justify-center min-h-[60vh] bg-slate-50">
+                <div className="w-[50px] h-[50px] rounded-full border-[4px] border-slate-200 border-t-[#165c52] animate-spin shadow-sm"></div>
+            </div>
+        );
     }
 
-    // A reusable menu item component matching the neumorphic style
-    const MenuItem = ({ icon: Icon, title, onClick, colorClass = "text-slate-700" }: any) => (
-        <button
-            onClick={onClick}
-            className={cn(
-                "w-full flex items-center justify-between p-4 rounded-[24px] bg-[#ffffff] transition-all duration-300 outline-none",
-                "shadow-sm",
-                "active:shadow-sm active:scale-[0.98]",
-                "hover:shadow-sm"
-            )}
-        >
-            <div className="flex items-center gap-4">
-                <div className={cn(
-                    "w-[44px] h-[44px] rounded-full bg-[#ffffff] flex items-center justify-center",
-                    "shadow-sm",
-                    colorClass
-                )}>
-                    <Icon className="w-5 h-5" />
+    if (!user) {
+        return (
+            <div className="flex flex-1 flex-col items-center justify-center min-h-[70vh] text-center px-4 bg-slate-50">
+                <div className="w-24 h-24 bg-white border border-slate-200 flex items-center justify-center mb-8 shadow-sm group hover:border-[#165c52] transition-colors cursor-default">
+                    <UserIcon className="w-10 h-10 text-slate-400 group-hover:text-[#165c52] transition-colors" strokeWidth={1.5} />
                 </div>
-                <span className="font-bold text-[16px] text-slate-800 tracking-tight">{title}</span>
+                <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter mb-4">Account Access</h1>
+                <p className="text-sm font-bold text-slate-500 mb-10 max-w-sm uppercase tracking-widest leading-relaxed">
+                    Log in to manage your industrial coatings, track orders, and access technical specs.
+                </p>
+
+                <div className="w-full max-w-[320px]">
+                    <Button
+                        onClick={handleLogin}
+                        disabled={isSigningIn}
+                        className="w-full text-[10px] tracking-widest uppercase font-black bg-[#165c52] text-white hover:bg-[#0f4d44]"
+                        size="lg"
+                    >
+                        {isSigningIn ? "Authorizing..." : "Authenticate with Google"}
+                    </Button>
+                </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400" />
-        </button>
-    )
+        );
+    }
+
+    // Process Shopify Data
+    const amountSpent = customerData?.amountSpent?.amount || "0.00";
+    const orders = customerData?.orders?.edges?.map((e: any) => e.node) || [];
+
+    const unfulfilledCount = orders.filter((o: any) => o.displayFulfillmentStatus === 'UNFULFILLED').length;
+
+    // User Info Fallbacks
+    const company = customerData?.defaultAddress?.company || "";
+    const name = customerData ? `${customerData.firstName || ''} ${customerData.lastName || ''}`.trim() : user.displayName;
+    const address = customerData?.defaultAddress
+        ? `${customerData.defaultAddress.address1}, ${customerData.defaultAddress.city}, ${customerData.defaultAddress.province || ''}`
+        : "";
 
     return (
-        <div className="min-h-screen bg-[#ffffff] flex flex-col font-sans mb-[80px]">
-            <Header showBack title={user ? "Profile" : "Account"} />
+        <div className="flex flex-1 w-full mx-auto md:px-0 lg:px-0 xl:px-0 max-w-none bg-white">
+            {/* Sidebar - Clean Light Theme */}
+            <aside className="w-64 border-r border-slate-200 hidden lg:flex flex-col bg-slate-50 p-6 gap-8 shrink-0 min-h-[calc(100vh-80px)]">
+                <div className="flex flex-col gap-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Management</p>
+                    <button
+                        onClick={() => setActiveTab('overview')}
+                        className={cn("flex items-center gap-3 px-3 py-2 font-bold text-sm transition-colors text-left",
+                            activeTab === 'overview' ? "bg-slate-200 border-l-[3px] border-[#165c52] text-slate-900" : "text-slate-500 hover:text-slate-900")}
+                    >
+                        <LayoutDashboard className="w-4 h-4" strokeWidth={2.5} /> Overview
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('orders')}
+                        className={cn("flex items-center gap-3 px-3 py-2 font-bold text-sm transition-colors text-left",
+                            activeTab === 'orders' ? "bg-slate-200 border-l-[3px] border-[#165c52] text-slate-900" : "text-slate-500 hover:text-slate-900")}
+                    >
+                        <Package className="w-4 h-4" strokeWidth={2.5} /> Orders
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('projects')}
+                        className={cn("flex items-center gap-3 px-3 py-2 font-bold text-sm transition-colors text-left",
+                            activeTab === 'projects' ? "bg-slate-200 border-l-[3px] border-[#165c52] text-slate-900" : "text-slate-500 hover:text-slate-900")}
+                    >
+                        <Bookmark className="w-4 h-4" strokeWidth={2.5} /> Saved Projects
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('docs')}
+                        className={cn("flex items-center gap-3 px-3 py-2 font-bold text-sm transition-colors text-left",
+                            activeTab === 'docs' ? "bg-slate-200 border-l-[3px] border-[#165c52] text-slate-900" : "text-slate-500 hover:text-slate-900")}
+                    >
+                        <FileText className="w-4 h-4" strokeWidth={2.5} /> Technical Docs
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('settings')}
+                        className={cn("flex items-center gap-3 px-3 py-2 font-bold text-sm transition-colors text-left mt-4",
+                            activeTab === 'settings' ? "bg-slate-200 border-l-[3px] border-[#165c52] text-slate-900" : "text-slate-500 hover:text-slate-900")}
+                    >
+                        <Settings className="w-4 h-4" strokeWidth={2.5} /> Settings
+                    </button>
 
-            <main className="flex-1 w-full max-w-md mx-auto relative px-6 md:px-8 mt-[90px] md:mt-[100px] mb-8 z-10 flex flex-col">
-                {loading ? (
-                    <div className="flex-1 flex items-center justify-center -mt-20">
-                        <div className="w-[50px] h-[50px] rounded-full border-[4px] border-[#F0F2F6] border-t-primary animate-spin shadow-sm"></div>
-                    </div>
-                ) : !user ? (
-                    <div className="flex-1 flex flex-col items-center justify-center -mt-20 text-center">
-                        <div className="w-[120px] h-[120px] rounded-[36px] bg-[#ffffff] shadow-sm flex items-center justify-center mb-8">
-                            <UserIcon className="w-16 h-16 text-slate-400" strokeWidth={1.5} />
-                        </div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight mb-3">Welcome to Pavlicevits</h1>
-                        <p className="text-[15px] font-medium text-slate-500 mb-10 max-w-[280px]">
-                            Log in to track your orders, save your data, and unlock premium access.
+                    <button onClick={handleLogout} className="flex items-center w-full gap-3 px-3 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors font-bold text-sm mt-8 border-t border-slate-200">
+                        <ArrowLeftFromLine className="w-4 h-4" strokeWidth={2.5} /> Sign Out
+                    </button>
+                </div>
+
+                <div className="mt-auto p-5 bg-[#165c52]/5 border border-[#165c52]/15">
+                    <p className="text-[10px] font-black text-[#165c52] uppercase tracking-widest mb-1">Support Tier</p>
+                    <p className="text-sm font-bold text-slate-900 mb-4">{profile?.role === 'admin' ? "System Admin" : "Standard Account"}</p>
+                    <Button className="w-full py-2 bg-[#165c52] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#0f4d44] transition-all rounded-none shadow-none h-auto">
+                        Contact Specialist
+                    </Button>
+                </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <div className="flex-1 p-8 md:p-12 lg:pl-16 max-w-7xl min-h-screen">
+                <div className="mb-12 flex items-center justify-between border-b border-slate-200 pb-8">
+                    <div>
+                        <h1 className="text-[32px] leading-none font-black text-slate-900 uppercase tracking-tighter mb-2">
+                            {activeTab === 'overview' && 'Account Overview'}
+                            {activeTab === 'orders' && 'Order History'}
+                            {activeTab === 'projects' && 'Saved Projects'}
+                            {activeTab === 'docs' && 'Technical Documentation'}
+                            {activeTab === 'settings' && 'Account Settings'}
+                        </h1>
+                        <p className="text-slate-500 font-medium text-sm">
+                            {activeTab === 'overview' && 'Control center for industrial coatings and project management.'}
+                            {activeTab === 'orders' && 'Track and manage your past and current industrial deliveries.'}
+                            {activeTab === 'projects' && 'Your AI-generated solutions and saved product configurations.'}
+                            {activeTab === 'docs' && 'Compliance certificates, MSDS, and technical data sheets.'}
+                            {activeTab === 'settings' && 'Manage your organization profile, billing, and security preferences.'}
                         </p>
+                    </div>
 
-                        <div className="w-full">
-                            <PrimaryButton
-                                onClick={handleLogin}
-                                disabled={isSigningIn}
-                                className={cn("w-full bg-slate-900 text-white shadow-sm", isSigningIn && "opacity-70")}
-                            >
-                                {isSigningIn ? "Connecting..." : "Continue with Google"}
-                            </PrimaryButton>
+                    <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 p-2 pr-6 shrink-0">
+                        <div className="w-10 h-10 bg-white border border-slate-200 flex items-center justify-center p-0.5">
+                            {user.photoURL ? (
+                                <img
+                                    src={user.photoURL}
+                                    alt={user.displayName || "User"}
+                                    width={40}
+                                    height={40}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <UserIcon className="w-6 h-6 text-slate-400" />
+                            )}
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-900">{user.displayName?.split(" ")[0] || "USER"}</span>
+                            <span className="text-[10px] text-slate-500">{user.email}</span>
                         </div>
                     </div>
-                ) : (
-                    <div className="space-y-6 flex-1 flex flex-col">
-                        {/* User Card */}
-                        <div className="p-6 rounded-[36px] bg-[#ffffff] shadow-sm flex flex-col items-center text-center relative overflow-hidden">
-                            {/* Decorative background shapes for the card */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10" />
-                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/5 rounded-full blur-xl -ml-6 -mb-6" />
+                </div>
 
-                            <div className="w-[88px] h-[88px] rounded-full p-[4px] bg-[#ffffff] shadow-sm mb-4 relative z-10">
-                                {user.photoURL ? (
-                                    <Image
-                                        src={user.photoURL}
-                                        alt={user.displayName || "User"}
-                                        width={80}
-                                        height={80}
-                                        className="rounded-full w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full rounded-full bg-slate-200 flex items-center justify-center">
-                                        <span className="text-2xl font-black text-slate-500">{user.email?.[0].toUpperCase() || 'U'}</span>
-                                    </div>
-                                )}
+                {/* OVERVIEW TAB */}
+                {activeTab === 'overview' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                            <div className="bg-white border border-slate-200 p-6 flex flex-col justify-between hover:border-[#165c52] transition-colors h-[160px]">
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Active Projects</p>
+                                    <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{unfulfilledCount}</h3>
+                                </div>
+                                <Factory className="w-6 h-6 text-[#165c52]" strokeWidth={2} />
                             </div>
-                            <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight relative z-10">
-                                {user.displayName || "Valued Customer"}
-                            </h2>
-                            <p className="text-[14px] font-medium text-slate-500 relative z-10 mt-1">
-                                {user.email}
-                            </p>
+                            <div className="bg-white border border-slate-200 p-6 flex flex-col justify-between hover:border-[#165c52] transition-colors h-[160px]">
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Lifetime Spend</p>
+                                    <h3 className="text-4xl font-black text-slate-900 tracking-tighter">${parseFloat(amountSpent).toLocaleString('en-US', { minimumFractionDigits: 2 })}</h3>
+                                </div>
+                                <Banknote className="w-6 h-6 text-[#165c52]" strokeWidth={2} />
+                            </div>
+                            <div className="bg-white border border-slate-200 p-6 flex flex-col justify-between hover:border-[#165c52] transition-colors h-[160px]">
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Orders</p>
+                                    <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{customerData?.numberOfOrders || 0}</h3>
+                                </div>
+                                <Package className="w-6 h-6 text-[#165c52]" strokeWidth={2} />
+                            </div>
                         </div>
 
-                        {/* Menu Items */}
-                        <div className="space-y-4">
-                            <MenuItem icon={Package} title="My Orders" onClick={() => console.log('Orders clicked')} colorClass="text-accent" />
-                            <MenuItem icon={CreditCard} title="Payment Methods" onClick={() => console.log('Payment clicked')} colorClass="text-emerald-500" />
-                            <MenuItem icon={Bell} title="Notifications" onClick={() => console.log('Notifications clicked')} colorClass="text-amber-500" />
-                            <MenuItem icon={Settings} title="Account Settings" onClick={() => console.log('Settings clicked')} colorClass="text-slate-500" />
-
-                            <button
-                                onClick={handleLogout}
-                                className={cn(
-                                    "w-full flex items-center justify-between p-4 rounded-[24px] bg-[#ffffff] transition-all duration-300 outline-none mt-6",
-                                    "shadow-sm",
-                                    "active:shadow-sm active:scale-[0.98]",
-                                    "hover:shadow-sm"
-                                )}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={cn(
-                                        "w-[44px] h-[44px] rounded-full bg-[#ffffff] flex items-center justify-center",
-                                        "shadow-sm",
-                                        "text-red-500"
-                                    )}>
-                                        <LogOut className="w-5 h-5 ml-[-2px]" />
-                                    </div>
-                                    <span className="font-bold text-[16px] text-red-500 tracking-tight">Log Out</span>
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                            {/* Recent Orders Overview */}
+                            <section>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900">Recent Orders</h2>
+                                    <button onClick={() => setActiveTab('orders')} className="text-[10px] font-black uppercase tracking-widest text-[#165c52] border-b-2 border-[#165c52] pb-0.5">View All</button>
                                 </div>
-                            </button>
+
+                                {orders.length > 0 ? (
+                                    <div className="border border-slate-200 divide-y divide-slate-100">
+                                        {orders.slice(0, 3).map((order: any, idx: number) => {
+                                            const dateStr = new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                            const isFulfilled = order.displayFulfillmentStatus === 'FULFILLED' || order.displayFulfillmentStatus === 'DELIVERED';
+                                            return (
+                                                <div key={idx} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer group">
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 text-sm group-hover:text-[#165c52] transition-colors">{order.name}</p>
+                                                        <p className="text-[11px] text-slate-500 mt-0.5">{dateStr}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-bold text-slate-900 text-sm">${parseFloat(order.totalPriceSet?.shopMoney?.amount || "0").toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                                                        <p className={cn("text-[9px] font-black uppercase tracking-widest mt-1", isFulfilled ? "text-[#165c52]" : "text-amber-600")}>
+                                                            {isFulfilled ? "Delivered" : "In Transit"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="bg-slate-50 border border-slate-200 border-dashed p-10 flex flex-col items-center justify-center text-center">
+                                        <Inbox className="w-10 h-10 text-slate-300 mb-4" />
+                                        <p className="text-sm font-bold text-slate-900">No active orders</p>
+                                        <p className="text-xs text-slate-500 mt-1 max-w-xs">You haven't placed any industrial coating orders yet.</p>
+                                        <Button className="mt-6 bg-slate-900 text-white rounded-none shadow-none uppercase text-[10px] font-black tracking-widest px-6 hover:bg-slate-800">
+                                            Browse Catalog
+                                        </Button>
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* Account Details */}
+                            <section>
+                                <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 mb-6">Organization Profile</h2>
+                                <div className="bg-slate-50 border border-slate-200 p-8 h-fit">
+                                    <div className="space-y-6">
+                                        {company ? (
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Organization</p>
+                                                <p className="text-[13px] font-bold text-slate-900 border-b border-slate-200 pb-2">{company}</p>
+                                            </div>
+                                        ) : null}
+
+                                        <div className="flex flex-col gap-1">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Primary Contact</p>
+                                            <p className="text-[13px] font-bold text-slate-900 border-b border-slate-200 pb-2">{name}</p>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Address</p>
+                                            <p className="text-[13px] font-bold text-slate-900 border-b border-slate-200 pb-2">{user.email}</p>
+                                        </div>
+
+                                        {address ? (
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Billing Address</p>
+                                                <p className="text-[13px] font-bold text-slate-900 border-b border-slate-200 pb-2">{address}</p>
+                                            </div>
+                                        ) : null}
+
+                                        <div className="pt-2">
+                                            <button
+                                                onClick={() => setActiveTab('settings')}
+                                                className="text-[#165c52] text-[9px] font-black uppercase tracking-widest hover:underline"
+                                            >
+                                                Update Profile Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
                     </div>
                 )}
-            </main>
 
-            {/* Mobile Bottom Navigation Wrapper */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center pb-6 z-50 pointer-events-none">
-                <div className="pointer-events-auto w-[calc(100%-48px)] max-w-[420px]">
-                    <BottomNav className="w-full rounded-[32px]" />
-                </div>
+                {/* ORDERS TAB */}
+                {activeTab === 'orders' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {orders.length > 0 ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm border-collapse min-w-[800px] border border-slate-200 bg-white">
+                                    <thead>
+                                        <tr className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                                            <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">Order Reference</th>
+                                            <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">Date</th>
+                                            <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px] w-1/3">Products</th>
+                                            <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">Status</th>
+                                            <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px] text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {orders.map((order: any, idx: number) => {
+                                            const dateStr = new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                            const isFulfilled = order.displayFulfillmentStatus === 'FULFILLED' || order.displayFulfillmentStatus === 'DELIVERED';
+
+                                            return (
+                                                <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-5 font-bold text-slate-900 text-[13px] group-hover:text-[#165c52] cursor-pointer">{order.name}</td>
+                                                    <td className="px-6 py-5 text-slate-500 text-[13px] font-medium">{dateStr}</td>
+                                                    <td className="px-6 py-5 text-slate-500 text-[12px] truncate max-w-[200px]">
+                                                        {order.lineItems?.edges?.map((e: any) => e.node.name).join(", ")}
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <span className={cn(
+                                                            "inline-flex items-center text-[9px] font-black uppercase px-2 py-1 tracking-widest",
+                                                            isFulfilled
+                                                                ? "bg-[#165c52]/10 text-[#165c52]"
+                                                                : "bg-slate-100 text-slate-600"
+                                                        )}>
+                                                            {isFulfilled ? "Delivered" : "In Transit"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-5 font-bold text-slate-900 text-right text-[13px]">${parseFloat(order.totalPriceSet?.shopMoney?.amount || "0").toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="bg-white border border-slate-200 border-dashed py-24 flex flex-col items-center justify-center text-center">
+                                <Package className="w-12 h-12 text-slate-300 mb-4" strokeWidth={1.5} />
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter mb-2">No Order History</h3>
+                                <p className="text-sm text-slate-500 max-w-sm mb-8 leading-relaxed">Your account doesn't have any past orders linked. Once you finalize a purchase, it will strictly be documented here.</p>
+                                <Button className="bg-[#165c52] text-white rounded-none shadow-none uppercase text-[10px] font-black tracking-widest px-8 hover:bg-[#0f4d44]">
+                                    Browse Inventory
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* SAVED PROJECTS / AI SOLUTIONS */}
+                {activeTab === 'projects' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {/* Empty state assumes no saved projects fetched yet */}
+                        <div className="bg-white border border-slate-200 border-dashed py-24 flex flex-col items-center justify-center text-center">
+                            <Bookmark className="w-12 h-12 text-slate-300 mb-4" strokeWidth={1.5} />
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter mb-2">No Saved Configurations</h3>
+                            <p className="text-sm text-slate-500 max-w-sm mb-8 leading-relaxed">Save custom paint configurations or AI-generated solution plans to access them instantly.</p>
+                            <Button className="bg-[#165c52] text-white rounded-none shadow-none uppercase text-[10px] font-black tracking-widest px-8 hover:bg-[#0f4d44]">
+                                Explore AI Solutions
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* TECHNICAL DOCS */}
+                {activeTab === 'docs' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="bg-white border border-slate-200 border-dashed py-24 flex flex-col items-center justify-center text-center">
+                            <FileImage className="w-12 h-12 text-slate-300 mb-4" strokeWidth={1.5} />
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter mb-2">Documentation Vault</h3>
+                            <p className="text-sm text-slate-500 max-w-sm mb-8 leading-relaxed">Access MSDS, Technical Data Sheets, and Compliance Certificates generated from your recent orders.</p>
+                            <Button className="bg-slate-900 text-white rounded-none shadow-none uppercase text-[10px] font-black tracking-widest px-8 hover:bg-slate-800" disabled>
+                                No Documents Available
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* SETTINGS */}
+                {activeTab === 'settings' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl">
+                        <div className="space-y-8">
+                            <div className="bg-white border border-slate-200 p-8">
+                                <h3 className="text-lg font-black uppercase tracking-tighter text-slate-900 mb-6">Security & Authentication</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Connected Account</p>
+                                        <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                                            <div className="flex items-center gap-3">
+                                                {user.photoURL ? (
+                                                    <img src={user.photoURL} alt="Google Auth" className="w-6 h-6 object-cover" />
+                                                ) : <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Auth" className="w-6 h-6" />}
+                                                <span className="font-bold text-sm text-slate-900">{user.email}</span>
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase text-[#165c52] bg-[#165c52]/10 px-2 py-1">Verified</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-none shadow-none uppercase text-[10px] font-black tracking-widest" onClick={handleLogout}>
+                                            Revoke Access
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 border border-slate-200 p-8 text-center text-slate-500 text-sm italic">
+                                Additional billing and organizational preferences are managed directly through you dedicated account specialist at this time.
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Mobile nav spacing */}
+            <div className="h-16 lg:hidden w-full shrink-0"></div>
         </div>
-    )
+    );
 }
-
-

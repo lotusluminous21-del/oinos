@@ -18,6 +18,8 @@ export interface ChatMessage {
     role: MessageRole;
     content: string;
     timestamp: number;
+    // Multimodal: remote Firebase Storage URL of the attached image
+    image_url?: string;
     // Expanded data returned by the backend
     understanding_summary?: string;
     question?: any;
@@ -68,7 +70,7 @@ interface ExpertSystemState {
 
     // Actions
     addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
-    sendMessage: (content: string) => Promise<void>;
+    sendMessage: (content: string, imageUrl?: string) => Promise<void>;
     setTyping: (typing: boolean) => void;
     setAgentStatus: (status: string) => void;
     setSolution: (solution: ExpertChatResponse['solution']) => void;
@@ -106,13 +108,14 @@ export const useExpertStore = create<ExpertSystemState>()(
                 get().syncWithFirestore();
             },
 
-            sendMessage: async (content) => {
+            sendMessage: async (content, imageUrl?) => {
                 const { addMessage } = get();
 
-                // Add user message locally
+                // Add user message locally (with optional image)
                 addMessage({
                     role: 'user',
                     content,
+                    ...(imageUrl ? { image_url: imageUrl } : {}),
                 });
 
                 // Set initial status to give immediate feedback while function spins up

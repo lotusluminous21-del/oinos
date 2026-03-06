@@ -1,14 +1,19 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
-import { Layers, Search, ShoppingCart } from 'lucide-react';
+import { Layers, Search, ShoppingCart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/lib/auth-context';
 
 export interface HeaderProps {
     className?: string;
 }
 
 export function Header({ className }: HeaderProps) {
+    const { user, loading } = useAuth();
+
     return (
         <header className={cn(
             "border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50",
@@ -25,7 +30,7 @@ export function Header({ className }: HeaderProps) {
 
                     <nav className="hidden lg:flex items-center gap-8">
                         {[
-                            { label: 'Shop', href: '/shop' },
+                            { label: 'Shop', href: '/categories' },
                             { label: 'AI Expert', href: '/expert' },
                             { label: 'Services', href: '/services' },
                             { label: 'About', href: '/about' },
@@ -52,16 +57,28 @@ export function Header({ className }: HeaderProps) {
                         />
                     </div>
 
-                    <button className="relative p-2 text-foreground hover:bg-secondary rounded-lg transition-colors">
+                    <Link href="/cart" className="relative p-2 text-foreground hover:bg-secondary rounded-lg transition-colors">
                         <ShoppingCart className="w-6 h-6" />
                         <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
-                    </button>
+                    </Link>
 
-                    <div
-                        className="w-10 h-10 rounded-full border border-border bg-cover bg-center"
-                        title="User profile"
-                        style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDQEM7QszTqwjXRih_KjFMBGpQ-p0_Ek4_e_wMciTO-o0cRwhXumd5NXvQBm6w2NzTStpPox8V9E0-ddZAXhnN0aaoj9vvGCOHsmgXKzr8D3dAxV9bOEvwn-wc3c_eC8vJPVGQ4jEF1VrDk5UTbDP1TKUXRy0lPGVJZfelyI-Lt8ehnOmS5ERQZb0Hbulcd3ZvGF3XTvlR_OHRKsIML5oDeY7N5fjrJpXSGXqgWHwoEdX5bXZqXJ3xRZJnGG8a8rNP5Yv99uVnctec")' }}
-                    ></div>
+                    <Link
+                        href="/profile"
+                        className="w-10 h-10 rounded-full border border-border bg-muted flex items-center justify-center overflow-hidden hover:border-primary transition-colors shadow-sm"
+                        title={user ? "Account Dashboard" : "Sign In"}
+                    >
+                        {loading ? (
+                            <div className="w-4 h-4 rounded-full border-[2px] border-muted-foreground/20 border-t-muted-foreground animate-spin"></div>
+                        ) : user ? (
+                            user.photoURL ? (
+                                <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover grayscale" />
+                            ) : (
+                                <span className="text-sm font-black text-slate-500">{user.email?.[0].toUpperCase() || 'U'}</span>
+                            )
+                        ) : (
+                            <User className="w-5 h-5 text-muted-foreground" />
+                        )}
+                    </Link>
                 </div>
             </div>
         </header>

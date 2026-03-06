@@ -18,6 +18,7 @@ export const shopifyClient = createStorefrontApiClient({
     storeDomain: env.SHOPIFY_STORE_DOMAIN,
     apiVersion: '2025-04',
     publicAccessToken: env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+    customFetchApi: (url, init) => fetch(url, { ...init, cache: 'no-store' })
 });
 
 export async function shopifyFetch<T>(query: string, variables?: Record<string, string | number | boolean | null | undefined | object>): Promise<T> {
