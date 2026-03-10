@@ -38,6 +38,23 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const pathname = usePathname();
     const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+    
+    // Force strict overflow lock on body to prevent window-level scrolling in admin
+    React.useEffect(() => {
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalBodyHeight = document.body.style.height;
+
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        document.body.style.height = '100dvh';
+
+        return () => {
+            document.documentElement.style.overflow = originalHtmlOverflow;
+            document.body.style.overflow = originalBodyOverflow;
+            document.body.style.height = originalBodyHeight;
+        };
+    }, []);
 
     const navItems = [
         {
@@ -140,7 +157,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
 
     return (
-        <div className="min-h-screen bg-white flex text-zinc-950">
+        <div className="h-screen overflow-hidden bg-white flex text-zinc-950">
             {/* Desktop Sidebar - Slimmer & cleaner */}
             <aside className="hidden lg:flex w-56 flex-col fixed inset-y-0 left-0 bg-white border-r border-zinc-200 z-50">
                 <NavContent />
@@ -154,7 +171,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Sheet>
 
             {/* Main Content Area */}
-            <main className="flex-1 lg:ml-56 flex flex-col h-full h-[100dvh] overflow-hidden bg-zinc-50/30">
+            <main className="flex-1 lg:ml-56 flex flex-col h-full overflow-hidden bg-zinc-50/30">
 
                 {/* Minimalist Header */}
                 <header className="h-14 shrink-0 bg-white border-b border-zinc-200 z-40 px-4 lg:px-6 flex items-center justify-between gap-4">
@@ -197,12 +214,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <div 
                     id="admin-content-frame"
                     className={cn(
-                        "flex-1 overflow-auto overscroll-contain",
-                        (pathname.includes('/wizard') || pathname.includes('/lab')) ? "p-0" : "p-4 md:p-6 lg:p-8"
+                        "flex-1 flex flex-col min-h-0 relative", // Added flex-col to support layout expansion
+                        (pathname.includes('/wizard') || pathname.includes('/lab') || pathname.includes('/products') || pathname.includes('/logs')) 
+                            ? "p-0 overflow-hidden" 
+                            : "p-4 md:p-6 lg:p-8 overflow-y-auto overscroll-contain"
                     )}
                 >
-                    {/* We no longer constrain max-width strictly to allow datatables to breathe, 
-                        but we provide sensible padding. */}
                     {children}
                 </div>
             </main>

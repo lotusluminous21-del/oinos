@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Layers, Search, ShoppingCart, User, Menu } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/auth-context';
@@ -32,11 +32,12 @@ export function Header({ className }: HeaderProps) {
         )}>
             <div className="max-w-7xl mx-auto w-full px-6 md:px-10 py-4 flex items-center justify-between whitespace-nowrap">
                 <div className="flex items-center gap-6 lg:gap-12">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="bg-primary p-1.5 rounded">
-                            <Layers className="text-primary-foreground w-6 h-6" />
-                        </div>
-                        <h2 className="text-xl font-black uppercase tracking-tighter text-foreground">Pavlicevits</h2>
+                    <Link href="/" className="flex items-center">
+                        <img 
+                            src="/svg/pavlicevits_logo.svg" 
+                            alt="Pavlicevits" 
+                            className="h-10 w-auto" 
+                        />
                     </Link>
 
                     <nav className="hidden lg:flex items-center gap-8">
@@ -95,13 +96,12 @@ export function Header({ className }: HeaderProps) {
                             </SheetTrigger>
                             <SheetContent side="right" className="w-[100vw] sm:w-[500px] p-0 border-l border-border/50 bg-background/95 backdrop-blur-3xl shadow-2xl flex flex-col">
                                 <SheetHeader className="px-8 py-8 border-b border-border/10 flex-shrink-0">
-                                    <SheetTitle className="text-left flex items-center gap-3">
-                                        <div className="bg-primary p-1.5 rounded">
-                                            <Layers className="text-primary-foreground w-5 h-5" />
-                                        </div>
-                                        <span className="font-black uppercase tracking-tighter text-2xl text-foreground">
-                                            Pavlicevits
-                                        </span>
+                                    <SheetTitle className="text-left flex items-center">
+                                        <img 
+                                            src="/svg/pavlicevits_logo.svg" 
+                                            alt="Pavlicevits" 
+                                            className="h-10 w-auto" 
+                                        />
                                     </SheetTitle>
                                 </SheetHeader>
                                 <div className="flex-1 overflow-y-auto px-8 py-10 flex flex-col">

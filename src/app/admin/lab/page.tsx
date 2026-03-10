@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, writeBatch, deleteDoc, deleteField } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { db, functions } from "@/lib/firebase";
@@ -423,8 +424,7 @@ function LabDashboardContent() {
             </header>
 
             {/* Main Workspace */}
-            <div className="flex flex-1 overflow-hidden">
-
+            <div className="flex flex-1 min-h-0 overflow-hidden">
                 {/* 2. Left Pane: Dropzone & Filters */}
                 <aside className="w-64 shrink-0 bg-white border-r border-zinc-200 flex flex-col z-10">
                     <div className="p-4 border-b border-zinc-200">
@@ -499,7 +499,7 @@ function LabDashboardContent() {
                 </aside>
 
                 {/* 3. Central Pane: Live Data Grid */}
-                <main className="flex-1 overflow-auto relative bg-white">
+                <main className="flex-1 min-h-0 relative bg-white flex flex-col">
                     {loading ? (
                         <div className="p-8 flex items-center justify-center h-full">
                             <span className="text-sm text-zinc-400 animate-pulse">Loading Workspace...</span>
@@ -515,136 +515,137 @@ function LabDashboardContent() {
                             </p>
                         </div>
                     ) : (
-                        <div className="min-w-[800px] w-full">
-                            {/* Table Header */}
-                            <div className="sticky top-0 z-10 bg-white border-y border-zinc-200 grid grid-cols-[30px_100px_minmax(150px,_1fr)_minmax(150px,_2fr)_140px] gap-4 px-4 py-2 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider shadow-sm items-center">
-                                <div className="flex justify-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedSkus.size === filteredProducts.length && filteredProducts.length > 0}
-                                        onChange={toggleAll}
-                                        className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-                                    />
+                        <ScrollArea className="flex-1">
+                            <div className="min-w-[800px] w-full">
+                                {/* Table Header */}
+                                <div className="sticky top-0 z-10 bg-white border-y border-zinc-200 grid grid-cols-[30px_100px_minmax(150px,_1fr)_minmax(150px,_2fr)_140px] gap-4 px-4 py-2 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider shadow-sm items-center">
+                                    <div className="flex justify-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedSkus.size === filteredProducts.length && filteredProducts.length > 0}
+                                            onChange={toggleAll}
+                                            className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+                                        />
+                                    </div>
+                                    <div>Status</div>
+                                    <div>Product Info</div>
+                                    <div>AI Metadata</div>
+                                    <div className="text-right">Visuals</div>
                                 </div>
-                                <div>Status</div>
-                                <div>Product Info</div>
-                                <div>AI Metadata</div>
-                                <div className="text-right">Visuals</div>
-                            </div>
 
-                            {/* Table Body */}
-                            <div className="divide-y divide-zinc-100">
-                                {filteredProducts.map(product => (
-                                    <div
-                                        key={product.id}
-                                        onClick={() => {
-                                            setSelectedSku(product.sku);
-                                            // Determine which step pipeline drawer should jump to
-                                            if (product.status === ProductState.NEEDS_METADATA_REVIEW) setTargetStep('metadata');
-                                            else if (product.status === ProductState.NEEDS_IMAGE_REVIEW) setTargetStep('sourcing');
-                                            else if (product.status === ProductState.FAILED || product.status === ProductState.DELAYED_RETRY) {
-                                                if (!product.ai_data?.title || product.enrichment_message?.includes('Metadata')) setTargetStep('metadata');
-                                                else if (!product.ai_data?.selected_images?.base) setTargetStep('sourcing');
-                                                else setTargetStep('studio');
-                                            } else {
-                                                setTargetStep(null);
-                                            }
-                                        }}
-                                        className={cn(
-                                            "grid grid-cols-[30px_100px_minmax(150px,_1fr)_minmax(150px,_2fr)_140px] gap-4 px-4 py-3 text-sm items-center hover:bg-zinc-50 cursor-pointer transition-colors group",
-                                            selectedSku === product.sku && "bg-zinc-50 ring-1 ring-inset ring-zinc-300"
-                                        )}
-                                    >
-                                        <div className="flex justify-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedSkus.has(product.sku)}
-                                                onChange={(e) => toggleSelection(product.sku, e as any)}
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-                                            />
-                                        </div>
-                                        <div>
-                                            {/* Status Badge */}
-                                            <span className={cn(
-                                                "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border",
-                                                product.status === ProductState.FAILED ? "bg-red-50 text-red-700 border-red-200" :
-                                                    product.status.includes('REVIEW') ? "bg-amber-50 text-amber-700 border-amber-200" :
-                                                        product.status === ProductState.READY_FOR_PUBLISH ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                                                            "bg-blue-50 text-blue-700 border-blue-200"
-                                            )}>
-                                                {product.status.replace(/_/g, ' ')}
-                                            </span>
-                                        </div>
-
-                                        <div className="pr-4 min-w-0">
-                                            <div className="text-[10px] font-mono text-zinc-400 mb-0.5">{product.sku}</div>
-                                            <div className="text-xs font-medium text-zinc-900 truncate" title={product.pylon_data?.name}>
-                                                {product.pylon_data?.name || "Unknown"}
-                                            </div>
-                                        </div>
-
-                                        <div className="pr-4 min-w-0">
-                                            {product.ai_data?.title ? (
-                                                <>
-                                                    <div className="text-xs font-medium text-zinc-800 truncate" title={product.ai_data.title}>
-                                                        {product.ai_data.title}
-                                                    </div>
-                                                    <div className="text-[10px] text-zinc-500 mt-0.5 flex gap-1 items-center">
-                                                        <span className="bg-zinc-100 px-1 rounded truncate max-w-[100px]">{product.ai_data.category}</span>
-                                                        <span>•</span>
-                                                        <span>{product.ai_data.variants?.length || 0} Vars</span>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <span className="text-xs text-zinc-400 italic">Pending...</span>
+                                {/* Table Body */}
+                                <div className="divide-y divide-zinc-100">
+                                    {filteredProducts.map(product => (
+                                        <div
+                                            key={product.id}
+                                            onClick={() => {
+                                                setSelectedSku(product.sku);
+                                                // Determine which step pipeline drawer should jump to
+                                                if (product.status === ProductState.NEEDS_METADATA_REVIEW) setTargetStep('metadata');
+                                                else if (product.status === ProductState.NEEDS_IMAGE_REVIEW) setTargetStep('sourcing');
+                                                else if (product.status === ProductState.FAILED || product.status === ProductState.DELAYED_RETRY) {
+                                                    if (!product.ai_data?.title || product.enrichment_message?.includes('Metadata')) setTargetStep('metadata');
+                                                    else if (!product.ai_data?.selected_images?.base) setTargetStep('sourcing');
+                                                    else setTargetStep('studio');
+                                                } else {
+                                                    setTargetStep(null);
+                                                }
+                                            }}
+                                            className={cn(
+                                                "grid grid-cols-[30px_100px_minmax(150px,_1fr)_minmax(150px,_2fr)_140px] gap-4 px-4 py-3 text-sm items-center hover:bg-zinc-50 cursor-pointer transition-colors group",
+                                                selectedSku === product.sku && "bg-zinc-50 ring-1 ring-inset ring-zinc-300"
                                             )}
-                                        </div>
+                                        >
+                                            <div className="flex justify-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedSkus.has(product.sku)}
+                                                    onChange={(e) => toggleSelection(product.sku, e as any)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+                                                />
+                                            </div>
+                                            <div>
+                                                {/* Status Badge */}
+                                                <span className={cn(
+                                                    "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border",
+                                                    product.status === ProductState.FAILED ? "bg-red-50 text-red-700 border-red-200" :
+                                                        product.status.includes('REVIEW') ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                                            product.status === ProductState.READY_FOR_PUBLISH ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                                                "bg-blue-50 text-blue-700 border-blue-200"
+                                                )}>
+                                                    {product.status.replace(/_/g, ' ')}
+                                                </span>
+                                            </div>
 
-                                        <div className="flex justify-end gap-1.5 shrink-0">
-                                            {/* Thumbnails Placeholder */}
-                                            {/* Thumbnails Placeholder */}
-                                            {(() => {
-                                                const baseFinalImg = product.ai_data?.images?.find(img => img.suffix === "base")?.url;
-                                                const baseStudioImg = product.ai_data?.generated_images?.base;
-                                                const anyFinalImg = product.ai_data?.images?.[0]?.url;
-                                                const sourceImg = product.ai_data?.selected_images?.base;
+                                            <div className="pr-4 min-w-0">
+                                                <div className="text-[10px] font-mono text-zinc-400 mb-0.5">{product.sku}</div>
+                                                <div className="text-xs font-medium text-zinc-900 truncate" title={product.pylon_data?.name}>
+                                                    {product.pylon_data?.name || "Unknown"}
+                                                </div>
+                                            </div>
 
-                                                // Priority: Finalized Base -> In-flight Base -> Any Finalized -> Source
-                                                const latestImage = baseFinalImg || baseStudioImg || anyFinalImg || sourceImg;
+                                            <div className="pr-4 min-w-0">
+                                                {product.ai_data?.title ? (
+                                                    <>
+                                                        <div className="text-xs font-medium text-zinc-800 truncate" title={product.ai_data.title}>
+                                                            {product.ai_data.title}
+                                                        </div>
+                                                        <div className="text-[10px] text-zinc-500 mt-0.5 flex gap-1 items-center">
+                                                            <span className="bg-zinc-100 px-1 rounded truncate max-w-[100px]">{product.ai_data.category}</span>
+                                                            <span>•</span>
+                                                            <span>{product.ai_data.variants?.length || 0} Vars</span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-xs text-zinc-400 italic">Pending...</span>
+                                                )}
+                                            </div>
 
-                                                if (latestImage) {
-                                                    return (
-                                                        <div className={cn(
-                                                            "w-14 h-14 rounded overflow-hidden shrink-0 cursor-pointer relative group",
-                                                            (baseFinalImg || anyFinalImg) ? "ring-1 ring-emerald-500 shadow-sm" : "border border-zinc-200"
-                                                        )}
-                                                            onClick={(e) => { e.stopPropagation(); setLightboxSrc(latestImage); }}
-                                                        >
-                                                            <img src={latestImage} className="w-full h-full object-cover" />
-                                                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                <ZoomIn className="w-4 h-4 text-white" />
+                                            <div className="flex justify-end gap-1.5 shrink-0">
+                                                {/* Thumbnails Placeholder */}
+                                                {(() => {
+                                                    const baseFinalImg = product.ai_data?.images?.find(img => img.suffix === "base")?.url;
+                                                    const baseStudioImg = product.ai_data?.generated_images?.base;
+                                                    const anyFinalImg = product.ai_data?.images?.[0]?.url;
+                                                    const sourceImg = product.ai_data?.selected_images?.base;
+
+                                                    // Priority: Finalized Base -> In-flight Base -> Any Finalized -> Source
+                                                    const latestImage = baseFinalImg || baseStudioImg || anyFinalImg || sourceImg;
+
+                                                    if (latestImage) {
+                                                        return (
+                                                            <div className={cn(
+                                                                "w-14 h-14 rounded overflow-hidden shrink-0 cursor-pointer relative group",
+                                                                (baseFinalImg || anyFinalImg) ? "ring-1 ring-emerald-500 shadow-sm" : "border border-zinc-200"
+                                                            )}
+                                                                onClick={(e) => { e.stopPropagation(); setLightboxSrc(latestImage); }}
+                                                            >
+                                                                <img src={latestImage} className="w-full h-full object-cover" />
+                                                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                    <ZoomIn className="w-4 h-4 text-white" />
+                                                                </div>
                                                             </div>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <div className="w-14 h-14 bg-zinc-50 border border-zinc-100 border-dashed rounded flex flex-col items-center justify-center shrink-0">
+                                                            <div className="w-1.5 h-1.5 bg-zinc-300 rounded-full" />
                                                         </div>
                                                     );
-                                                }
-
-                                                return (
-                                                    <div className="w-14 h-14 bg-zinc-50 border border-zinc-100 border-dashed rounded flex flex-col items-center justify-center shrink-0">
-                                                        <div className="w-1.5 h-1.5 bg-zinc-300 rounded-full" />
-                                                    </div>
-                                                );
-                                            })()}
+                                                })()}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                                {filteredProducts.length === 0 && (
-                                    <div className="p-8 text-center text-zinc-500 text-sm">
-                                        No products match the selected filter.
-                                    </div>
-                                )}
+                                    ))}
+                                    {filteredProducts.length === 0 && (
+                                        <div className="p-8 text-center text-zinc-500 text-sm">
+                                            No products match the selected filter.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        </ScrollArea>
                     )}
                 </main>
 
@@ -667,15 +668,17 @@ function LabDashboardContent() {
 
 export default function LabDashboard() {
     return (
-        <Suspense fallback={
-            <div className="h-full flex items-center justify-center p-8 bg-zinc-50">
-                <div className="flex flex-col items-center gap-4 text-zinc-400">
-                    <Loader2 className="w-8 h-8 animate-spin" />
-                    <span className="text-sm">Loading Workspace...</span>
+        <div className="h-full">
+            <Suspense fallback={
+                <div className="h-full flex items-center justify-center p-8 bg-zinc-50">
+                    <div className="flex flex-col items-center gap-4 text-zinc-400">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                        <span className="text-sm">Loading Workspace...</span>
+                    </div>
                 </div>
-            </div>
-        }>
-            <LabDashboardContent />
-        </Suspense>
+            }>
+                <LabDashboardContent />
+            </Suspense>
+        </div>
     );
 }

@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.69",
+    "@assistant-ui/react": "^0.12.16",
+    "@assistant-ui/react-markdown": "^0.12.5",
     "@fontsource/public-sans": "^5.2.7",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",

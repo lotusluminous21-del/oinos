@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Tooltip,
     TooltipContent,
@@ -146,7 +147,7 @@ function StagingAreaContent() {
             </div>
 
             {/* High-Density Data Table */}
-            <div className="flex-1 overflow-auto">
+            <ScrollArea className="flex-1 min-h-0">
                 <table className="w-full text-left border-collapse text-sm">
                     <thead className="sticky top-0 bg-white z-10 border-b border-zinc-200 shadow-sm">
                         <tr>
@@ -245,7 +246,7 @@ function StagingAreaContent() {
                         )}
                     </tbody>
                 </table>
-            </div>
+            </ScrollArea>
 
             {/* Bottom Activity Dock for Bulk Actions */}
             {selectedSkus.size > 0 && (

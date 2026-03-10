@@ -7,11 +7,11 @@ import { usePathname } from 'next/navigation';
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   
-  // Disable Lenis smooth scroll in the admin UI as it conflicts with 
-  // nested scroll containers and interactive datatables.
-  const isAdminPath = pathname?.startsWith('/admin');
+  // Disable Lenis smooth scroll in the admin and expert UI as it conflicts with 
+  // nested scroll containers and interactive components.
+  const isDisabledPath = pathname?.startsWith('/admin') || pathname?.startsWith('/expert');
 
-  if (isAdminPath) {
+  if (isDisabledPath) {
     return <>{children}</>;
   }
 
