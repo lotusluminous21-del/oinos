@@ -1,4 +1,18 @@
 {
-    "indexes": [],
-    "fieldOverrides": []
-} 
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "wines",
+      "fieldPath": "embedding",
+      "indexes": [
+        {
+          "queryScope": "COLLECTION",
+          "vectorConfig": {
+            "dimension": 768,
+            "flat": {}
+          }
+        }
+      ]
+    }
+  ]
+}

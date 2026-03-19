@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "693657367669",
+    "project_id": "oinos-33896",
+    "storage_bucket": "oinos-33896.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:693657367669:android:0c57fb032259d7de14f43c",
+        "android_client_info": {
+          "package_name": "com.example.oinos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACw0_Z0qf-eJ2Yym_VYZ408WckJvdBqM0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
