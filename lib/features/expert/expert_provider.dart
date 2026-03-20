@@ -84,11 +84,10 @@ class ExpertProvider extends ChangeNotifier {
       final data = docSnap.data()!;
 
       // 1. Typing / agent status
-      if (data['status'] == 'processing') {
+      if (data.containsKey('agentStatus')) {
         _isTyping = true;
-        _agentStatus = data['agentStatus'] ?? 'Επεξεργασία...';
+        _agentStatus = data['agentStatus'] as String;
       } else {
-        _isTyping = false;
         _agentStatus = '';
       }
 
@@ -124,7 +123,8 @@ class ExpertProvider extends ChangeNotifier {
   // ── Send Message ──────────────────────────────────────────────────
 
   Future<void> sendMessage(String content) async {
-    if (content.trim().isEmpty) return;
+    final user = _auth.currentUser;
+    if (user == null || content.trim().isEmpty) return;
 
     final msg = ChatMessage(
       id: _uuid.v4(),
@@ -139,6 +139,22 @@ class ExpertProvider extends ChangeNotifier {
     notifyListeners();
 
     await _syncWithFirestore();
+
+    try {
+      final fn = _functions.httpsCallable('chat_sommelier');
+      await fn.call({
+        'sessionId': _sessionId,
+        'message': content.trim(),
+        'messageId': msg.id,
+      });
+    } catch (e) {
+      DevConsoleService.instance
+          .logError('Failed to send text to sommelier', e, StackTrace.current);
+    } finally {
+      _isTyping = false;
+      _agentStatus = '';
+      notifyListeners();
+    }
   }
 
   // ── Generate Solution (callable function) ─────────────────────────
@@ -157,7 +173,9 @@ class ExpertProvider extends ChangeNotifier {
     } catch (e) {
       DevConsoleService.instance
           .logError('Failed to generate solution', e, StackTrace.current);
+    } finally {
       _isTyping = false;
+      _agentStatus = '';
       notifyListeners();
     }
   }

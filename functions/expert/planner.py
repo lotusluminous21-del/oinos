@@ -32,7 +32,7 @@ class WineQueryPlanner:
         """
         Generate structured search specifications from a chat transcript.
         """
-        model_name = LLMConfig.get_model_name(complex=False) # Flash is faster and fine for JSON extraction
+        model_name = LLMConfig.get_model_name(simple=True) # Flash is faster and fine for JSON extraction
         vertex_client = LLMConfig.get_client()
 
         chat_transcript = "\n".join([f"{msg.get('role', 'user').upper()}: {msg.get('content', '')}" for msg in history])

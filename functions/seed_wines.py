@@ -211,8 +211,9 @@ def generate_embeddings_and_upload():
     for wine in MOCK_WINES:
         description_for_embedding = f"Name: {wine['name']}. Description: {wine['raw_description']}. Food pairings: {', '.join(wine['food_pairing'])}. Price: €{wine['price']}"
         
+        from core.llm_config import LLMConfig
         response = client.models.embed_content(
-            model='text-embedding-004',
+            model=LLMConfig.get_embedding_model_name(),
             contents=description_for_embedding,
         )
         

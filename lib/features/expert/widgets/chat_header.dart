@@ -15,12 +15,14 @@ const List<String> _capabilityLabels = [
 class ChatHeader extends StatefulWidget {
   final bool hasMessages;
   final VoidCallback onReset;
+  final VoidCallback? onCopyChat;
   final VoidCallback onOpenSidebar;
 
   const ChatHeader({
     super.key,
     required this.hasMessages,
     required this.onReset,
+    this.onCopyChat,
     required this.onOpenSidebar,
   });
 
@@ -179,6 +181,45 @@ class _ChatHeaderState extends State<ChatHeader>
                     ],
                   ),
                 ),
+
+                // Copy session button
+                if (widget.hasMessages && widget.onCopyChat != null) ...[
+                  GestureDetector(
+                    onTap: widget.onCopyChat,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondary.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withOpacity(0.5),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.copy_rounded,
+                            size: 14,
+                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Αντιγραφή',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: theme.colorScheme.onSurface
+                                  .withOpacity(0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
 
                 // New session button
                 if (widget.hasMessages)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'expert_provider.dart';
 import 'expert_state.dart';
@@ -59,6 +60,26 @@ class _ExpertScreenState extends State<ExpertScreen> {
         }
       });
     }
+  }
+
+  void _copyChatToClipboard(List<ChatMessage> messages, BuildContext context) {
+    if (messages.isEmpty) return;
+    final sb = StringBuffer();
+    for (var m in messages) {
+      final roleStr = m.isUser ? 'User' : 'Sommelier';
+      sb.writeln('$roleStr:');
+      sb.writeln(m.content);
+      sb.writeln('');
+    }
+    Clipboard.setData(ClipboardData(text: sb.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Το ιστορικό αντιγράφηκε στο πρόχειρο!'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   void _openSidebar() {
@@ -127,6 +148,7 @@ class _ExpertScreenState extends State<ExpertScreen> {
                 ChatHeader(
                   hasMessages: hasMessages,
                   onReset: provider.resetSession,
+                  onCopyChat: () => _copyChatToClipboard(messages, context),
                   onOpenSidebar: _openSidebar,
                 ),
 

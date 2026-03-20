@@ -14,6 +14,7 @@ def run_pipeline(data: dict) -> dict:
     session_id = data.get("sessionId")
     user_id = data.get("userId")
     user_message = data.get("message")
+    user_message_id = data.get("messageId")
     
     if not session_id or not user_id or not user_message:
         return {"status": "error", "message": "Missing required fields"}
@@ -29,15 +30,20 @@ def run_pipeline(data: dict) -> dict:
     else:
         history = []
 
-    # 1. Add new user message to history
+    # 1. Add new user message to history if not present
     now = datetime.now(timezone.utc)
-    user_msg_doc = {
-        "id": str(uuid.uuid4()),
-        "role": "user",
-        "content": user_message,
-        "timestamp": now
-    }
-    history.append(user_msg_doc)
+    user_msg_doc = None
+    
+    if user_message_id and any(m.get("id") == user_message_id for m in history):
+        pass # Already synced by client
+    else:
+        user_msg_doc = {
+            "id": user_message_id or str(uuid.uuid4()),
+            "role": "user",
+            "content": user_message,
+            "timestamp": now
+        }
+        history.append(user_msg_doc)
 
     # 2. Run Interviewer Logic
     logger.info("Running Interviewer", session_id=session_id)
@@ -51,8 +57,11 @@ def run_pipeline(data: dict) -> dict:
     
     status = result.get("status")
     ai_response = result.get("answer", "")
-    final_messages = [user_msg_doc]
+    final_messages = []
+    if user_msg_doc:
+        final_messages.append(user_msg_doc)
     retrieved_wines = []
+    wines_metadata = []
 
     # 3. Routing to Solution Builder (CellarMaster) 
     if status == "transition_to_retrieval":
@@ -76,26 +85,43 @@ def run_pipeline(data: dict) -> dict:
         session_ref.set({"agentStatus": "Ετοιμάζω την πρότασή μου..."}, merge=True)
         
         if not retrieved_wines:
-            ai_response = json.dumps({
-                "prose_recommendation": "Έχω κατανοήσει πλήρως τις προτιμήσεις σας, αλλά δυστυχώς δεν βρήκα κάποιο κρασί στην κάβα μας που να ταιριάζει απόλυτα αυτή τη στιγμή.",
-                "recommended_wines": []
-            }, ensure_ascii=False)
+            ai_response = "Έχω κατανοήσει πλήρως τις προτιμήσεις σας, αλλά δυστυχώς δεν βρήκα κάποιο κρασί στην κάβα μας που να ταιριάζει απόλυτα αυτή τη στιγμή."
+            wines_metadata = []
         else:
             cellar_master = CellarMaster()
-            ai_response = cellar_master.recommend(history=history, retrieved_wines=retrieved_wines)
+            cm_response = cellar_master.recommend(history=history, retrieved_wines=retrieved_wines)
+            
+            try:
+                cm_cleaned = cm_response.strip()
+                if cm_cleaned.startswith("```json"):
+                    cm_cleaned = cm_cleaned[7:]
+                if cm_cleaned.startswith("```"):
+                    cm_cleaned = cm_cleaned[3:]
+                if cm_cleaned.endswith("```"):
+                    cm_cleaned = cm_cleaned[:-3]
+                
+                parsed_response = json.loads(cm_cleaned.strip())
+                ai_response = parsed_response.get("prose_recommendation", cm_response)
+                wines_metadata = parsed_response.get("recommended_wines", [])
+            except json.JSONDecodeError:
+                ai_response = cm_response
+                wines_metadata = []
             
         # Clear status
         session_ref.set({"agentStatus": firestore.DELETE_FIELD}, merge=True)
 
     logger.info("Pipeline complete", session_id=session_id, final_status=status)
 
-    final_messages.append({
+    assistant_msg = {
         "id": str(uuid.uuid4()),
         "role": "assistant",
         "content": ai_response,
         "timestamp": datetime.now(timezone.utc)
-    })
-    
+    }
+    if wines_metadata:
+        assistant_msg["wines"] = wines_metadata
+        
+    final_messages.append(assistant_msg)
     # Save to Firestore
     session_ref.set({
         "messages": firestore.firestore.ArrayUnion(final_messages),

@@ -4,7 +4,7 @@ from enum import Enum
 class ModelName(Enum):
     SIMPLE = "gemini-2.5-flash-lite"
     COMPLEX = "gemini-3.1-flash-lite-preview"
-    DEFAULT = "gemini-2.5-flash-lite"
+    EMBEDDING = "text-embedding-004"
 
 class LLMConfig:
     PROJECT_ID = "oinos-33896"
@@ -16,7 +16,13 @@ class LLMConfig:
             return ModelName.COMPLEX.value
         if simple:
             return ModelName.SIMPLE.value
-        return ModelName.DEFAULT.value
+            
+        # Default to simple if nothing is specified to strictly enforce the two bounds
+        return ModelName.SIMPLE.value
+
+    @classmethod
+    def get_embedding_model_name(cls) -> str:
+        return ModelName.EMBEDDING.value
 
     @classmethod
     def get_client(cls):

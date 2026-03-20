@@ -40,17 +40,49 @@ enum PipelineStage {
 
 enum MessageRole { user, assistant }
 
+class RecommendedWine {
+  final String sku;
+  final String name;
+  final double price;
+  final String whyItFits;
+
+  const RecommendedWine({
+    required this.sku,
+    required this.name,
+    required this.price,
+    required this.whyItFits,
+  });
+
+  factory RecommendedWine.fromMap(Map<String, dynamic> map) {
+    return RecommendedWine(
+      sku: map['sku']?.toString() ?? '',
+      name: map['name']?.toString() ?? '',
+      price: (map['price'] ?? 0.0).toDouble(),
+      whyItFits: map['why_it_fits']?.toString() ?? map['whyItFits']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+        'sku': sku,
+        'name': name,
+        'price': price,
+        'why_it_fits': whyItFits,
+      };
+}
+
 class ChatMessage {
   final String id;
   final MessageRole role;
   final String content;
   final DateTime timestamp;
+  final List<RecommendedWine>? wines;
 
   const ChatMessage({
     required this.id,
     required this.role,
     required this.content,
     required this.timestamp,
+    this.wines,
   });
 
   bool get isUser => role == MessageRole.user;
@@ -64,6 +96,11 @@ class ChatMessage {
           ? DateTime.fromMillisecondsSinceEpoch(map['timestamp'])
           : DateTime.tryParse(map['timestamp']?.toString() ?? '') ??
               DateTime.now(),
+      wines: map['wines'] != null
+          ? (map['wines'] as List)
+              .map((w) => RecommendedWine.fromMap(Map<String, dynamic>.from(w)))
+              .toList()
+          : null,
     );
   }
 
@@ -72,6 +109,7 @@ class ChatMessage {
         'role': role == MessageRole.user ? 'user' : 'assistant',
         'content': content,
         'timestamp': timestamp.toIso8601String(),
+        if (wines != null) 'wines': wines!.map((w) => w.toMap()).toList(),
       };
 }
 

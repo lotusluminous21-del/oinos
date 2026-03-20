@@ -177,7 +177,7 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble>
                     children: [
                       // Message content with word-by-word reveal
                       _isDone
-                          ? Text(
+                          ? SelectableText(
                               widget.message.content,
                               style: TextStyle(
                                 color: theme.colorScheme.onSurface,
@@ -187,6 +187,18 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble>
                               ),
                             )
                           : _buildAnimatedText(theme),
+
+                      // Render recommended wines beautifully
+                      if (_isDone && widget.message.wines != null && widget.message.wines!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: widget.message.wines!
+                                .map((w) => _buildWineCard(theme, w))
+                                .toList(),
+                          ),
+                        ),
 
                       // Typing indicator inside last assistant bubble
                       if (widget.isTyping &&
@@ -300,6 +312,82 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble>
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildWineCard(ThemeData theme, RecommendedWine wine) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.3),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(Icons.wine_bar, size: 16, color: theme.colorScheme.primary),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      wine.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '€${wine.price.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            wine.whyItFits,
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

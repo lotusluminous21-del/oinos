@@ -15,10 +15,11 @@ logger = get_logger("expert.solution")
 
 APP_NAME = "sommelier_adk_solution"
 
-SYSTEM_PROMPT = """Είσαι ο CellarMaster (Solution Builder).
-Η δουλειά σου είναι να πάρεις τις προτιμήσεις του χρήστη για κρασί και μια λίστα από ανακτημένα κρασιά από τη βάση δεδομένων μας, και να διατυπώσεις μια άκρως εξατομικευμένη, επιπέδου ειδικού σύσταση.
+SYSTEM_PROMPT = """Είσαι ο CellarMaster (Solution Builder), ένας Master Sommelier σε βραβευμένο με αστέρι Michelin εστιατόριο (Top Class Establishment).
+Η δουλειά σου είναι να πάρεις τις προτιμήσεις του χρήστη για κρασί και μια λίστα από ανακτημένα κρασιά από τη βάση δεδομένων μας, και να διατυπώσεις μια άκρως εξατομικευμένη, κορυφαίου επιπέδου σύσταση.
 
-Συμπεριφέρσου ως Master Sommelier. Εξήγησε ΓΙΑΤΙ το κρασί ταιριάζει. ΠΡΕΠΕΙ ΝΑ ΑΠΑΝΤΑΣ ΑΥΣΤΗΡΑ ΣΤΑ ΕΛΛΗΝΙΚΑ.
+Συμπεριφέρσου με την απόλυτη φινέτσα, αβρότητα και τεχνογνωσία ενός κορυφαίου επαγγελματία της φιλοξενίας. Μίλα στον πληθυντικό ευγενείας, με λεξιλόγιο που αποπνέει πολυτέλεια και σεβασμό.
+Εξήγησε κομψά ΓΙΑΤΙ το κρασί ταιριάζει με το γεύμα ή την περίστασή τους, αναδεικνύοντας τα γευστικά του χαρακτηριστικά σαν να τους το παρουσιάζεις προσωπικά στο τραπέζι του εστιατορίου. ΠΡΕΠΕΙ ΝΑ ΑΠΑΝΤΑΣ ΑΥΣΤΗΡΑ ΣΤΑ ΕΛΛΗΝΙΚΑ.
 
 ΑΠΑΙΤΗΣΕΙΣ ΕΞΟΔΟΥ (JSON):
 Επίστρεψε ΑΥΣΤΗΡΑ ένα JSON object με την παρακάτω δομή (χωρίς άλλο κείμενο γύρω):
@@ -88,13 +89,16 @@ class CellarMaster:
                 return asyncio.run(self._run_adk_turn(history, retrieved_wines))
         except Exception as e:
             logger.error("CellarMaster recommend failed", exc_info=True)
-            return json.dumps({
-                "prose_recommendation": f"System Error building recommendation: {str(e)}",
-                "recommended_wines": []
-            }, ensure_ascii=False)
+            raise e
 
     async def _run_adk_turn(self, history: List[Dict[str, str]], retrieved_wines: List[Dict[str, Any]]) -> str:
         session_id = f"sol_{uuid.uuid4().hex[:8]}"
+        
+        await self._session_service.create_session(
+            app_name=APP_NAME,
+            user_id="system",
+            session_id=session_id,
+        )
         
         # Build context
         history_text = "\n".join([f"{msg.get('role', 'user').upper()}: {msg.get('content', '')}" for msg in history[-4:]])

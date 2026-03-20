@@ -52,7 +52,7 @@ class CellarRetriever:
             chat_context = "\n".join([f"{msg.get('role', 'user').upper()}: {msg.get('content', '')}" for msg in history[-5:]])
             
             embed_response = self.genai_client.models.embed_content(
-                model='text-embedding-004',
+                model=LLMConfig.get_embedding_model_name(),
                 contents=chat_context,
             )
             query_vector = Vector(embed_response.embeddings[0].values)

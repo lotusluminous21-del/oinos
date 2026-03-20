@@ -70,7 +70,7 @@ def process_wine_update(event):
         description_for_embedding = f"Name: {after_data.get('name', '')}. Type: {enriched_data.get('type')}. Color: {enriched_data.get('colour')}. Profile: {', '.join(enriched_data.get('tasting_notes', {}).get('taste', []))} and {', '.join(enriched_data.get('tasting_notes', {}).get('aroma', []))}. Pairs with: {', '.join(enriched_data.get('food_pairing', []))}."
         
         embed_response = client.models.embed_content(
-            model='text-embedding-004',
+            model=LLMConfig.get_embedding_model_name(),
             contents=description_for_embedding,
         )
         

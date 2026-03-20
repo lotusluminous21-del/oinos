@@ -26,7 +26,7 @@ def chat_sommelier(req: https_fn.CallableRequest) -> dict:
         return run_pipeline(req_data)
     except Exception as e:
         print(f"Error in chat_sommelier wrapper: {e}")
-        return {"status": "error", "message": str(e)}
+        raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=str(e))
 
 # --- 2. Lab Wine Enrichment Callable ---
 @https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_512, timeout_sec=540)
