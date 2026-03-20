@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../expert_state.dart';
+import '../../auth/auth_service.dart';
 
 /// Sidebar content showing interview progress and pipeline status.
 /// Port of reference SidebarContent — adapted as a mobile bottom sheet.
@@ -102,6 +104,24 @@ class SidebarContent extends StatelessWidget {
             const SizedBox(height: 12),
             _LogStrip(theme: theme, logs: logs),
           ],
+
+          const SizedBox(height: 32),
+
+          // ── 6. Logout Button ──────────────────────────────
+          Center(
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close sidebar
+                context.read<AuthService>().signOut();
+              },
+              icon: const Icon(Icons.logout, size: 18),
+              label: const Text('Αποσύνδεση', style: TextStyle(fontWeight: FontWeight.w600)),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );

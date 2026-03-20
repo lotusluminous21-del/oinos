@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'lab_service.dart';
+import '../auth/auth_service.dart';
 
 class LabScreen extends StatefulWidget {
   const LabScreen({super.key});
@@ -71,7 +73,15 @@ class _LabScreenState extends State<LabScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () {
+              context.read<AuthService>().signOut();
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
             onPressed: () {
               // Mock refresh
             },
