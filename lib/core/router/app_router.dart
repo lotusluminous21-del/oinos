@@ -4,10 +4,12 @@ import '../../features/auth/auth_service.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/expert/expert_screen.dart';
 import '../../features/lab/lab_screen.dart';
+import '../../features/quiz/quiz_screen.dart';
 import 'scaffold_with_nav_bar.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final GlobalKey<NavigatorState> _expertNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'expert');
+final GlobalKey<NavigatorState> _quizNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'quiz');
 final GlobalKey<NavigatorState> _labNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'lab');
 
 class AppRouter {
@@ -51,6 +53,15 @@ class AppRouter {
               GoRoute(
                 path: '/expert',
                 builder: (context, state) => const ExpertScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _quizNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/quiz',
+                builder: (context, state) => const QuizScreen(),
               ),
             ],
           ),

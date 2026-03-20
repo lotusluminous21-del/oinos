@@ -30,6 +30,11 @@ class ScaffoldWithNavBar extends StatelessWidget {
             label: 'Sommelier',
           ),
           NavigationDestination(
+            icon: Icon(Icons.quiz_outlined),
+            selectedIcon: Icon(Icons.quiz),
+            label: 'Βοηθός',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.science_outlined),
             selectedIcon: Icon(Icons.science),
             label: 'Admin Lab',

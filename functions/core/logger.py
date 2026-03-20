@@ -40,11 +40,18 @@ def get_logger(name: str) -> logging.Logger:
     # Patch logger methods to accept kwargs for structured data
     def make_structured_logger(level_method):
         def _log(msg, *args, **kwargs):
-            if kwargs and "exc_info" not in kwargs:
-                extra = {"kwargs_data": kwargs}
-                level_method(msg, *args, extra=extra)
-            else:
-                level_method(msg, *args, **kwargs)
+            standard_keys = {"exc_info", "stack_info", "stacklevel", "extra"}
+            standard_kwargs = {k: v for k, v in kwargs.items() if k in standard_keys}
+            custom_kwargs = {k: v for k, v in kwargs.items() if k not in standard_keys}
+            
+            if custom_kwargs:
+                extra = standard_kwargs.get("extra", {})
+                if not isinstance(extra, dict):
+                    extra = {}
+                extra["kwargs_data"] = custom_kwargs
+                standard_kwargs["extra"] = extra
+                
+            level_method(msg, *args, **standard_kwargs)
         return _log
 
     logger.info = make_structured_logger(logger.info)

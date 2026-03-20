@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/auth_service.dart';
 import 'features/expert/expert_provider.dart';
+import 'features/quiz/quiz_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: authService),
         ChangeNotifierProvider(create: (_) => ExpertProvider()),
+        ChangeNotifierProvider(create: (_) => QuizProvider()),
       ],
       child: SommelierApp(appRouter: appRouter),
     ),

@@ -45,7 +45,45 @@ def enrich_wine_batch(req: https_fn.CallableRequest) -> dict:
         print(f"Error in enrich_wine_batch wrapper: {e}")
         return {"status": "error", "message": str(e)}
 
-# --- 3. Lab Wine Background Sync Trigger ---
+# --- 3. Quiz Init Callable ---
+@https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_512, timeout_sec=120)
+def quiz_init(req: https_fn.CallableRequest) -> dict:
+    """
+    Initialize a quiz session for a store. Returns the first question.
+    """
+    try:
+        if not req.auth or not req.auth.uid:
+            return {"status": "error", "message": "Unauthenticated access"}
+        
+        from expert.quiz_engine import initialize_quiz
+        req_data = req.data if isinstance(req.data, dict) else {}
+        req_data["userId"] = req.auth.uid
+        
+        return initialize_quiz(req_data)
+    except Exception as e:
+        print(f"Error in quiz_init wrapper: {e}")
+        raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=str(e))
+
+# --- 4. Quiz Next Question Callable ---
+@https_fn.on_call(region="europe-west1", memory=options.MemoryOption.MB_512, timeout_sec=300)
+def quiz_next(req: https_fn.CallableRequest) -> dict:
+    """
+    Process a quiz answer and return next question or final recommendation.
+    """
+    try:
+        if not req.auth or not req.auth.uid:
+            return {"status": "error", "message": "Unauthenticated access"}
+        
+        from expert.quiz_engine import next_question
+        req_data = req.data if isinstance(req.data, dict) else {}
+        req_data["userId"] = req.auth.uid
+        
+        return next_question(req_data)
+    except Exception as e:
+        print(f"Error in quiz_next wrapper: {e}")
+        raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=str(e))
+
+# --- 5. Lab Wine Background Sync Trigger ---
 @firestore_fn.on_document_written(
     document="wines/{sku}",
     region="europe-west1",
